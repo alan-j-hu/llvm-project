@@ -1,3 +1,4 @@
+
 /*===-- llvm_ocaml.h - LLVM OCaml Glue --------------------------*- C++ -*-===*\
 |*                                                                            *|
 |* Part of the LLVM Project, under the Apache License v2.0 with LLVM          *|
@@ -31,6 +32,17 @@
 #define Is_some(v) Is_block(v)
 value caml_alloc_some(value);
 #endif
+
+#define LLVMDiagnosticInfo_val(v) \
+  (*((LLVMDiagnosticInfo*) Data_abstract_val(v)))
+#define LLVMContext_val(v) (*((LLVMContextRef*) Data_abstract_val(v)))
+#define LLVMAttribute_val(v) (*((LLVMAttributeRef*) Data_abstract_val(v)))
+#define LLVMModule_val(v) (*((LLVMModuleRef*) Data_abstract_val(v)))
+#define LLVMMetadata_val(v) (*((LLVMMetadataRef*) Data_abstract_val(v)))
+#define LLVMType_val(v) (*((LLVMTypeRef*) Data_abstract_val(v)))
+#define LLVMValue_val(v) (*((LLVMValueRef*) Data_abstract_val(v)))
+#define LLVMUse_val(v) (*((LLVMUseRef*) Data_abstract_val(v)))
+#define LLVMInstr_val(v) (*((LLVMInstrRef*) Data_abstract_val(v)))
 
 /* Convert a C pointer to an OCaml option */
 value ptr_to_option(void *Ptr);
