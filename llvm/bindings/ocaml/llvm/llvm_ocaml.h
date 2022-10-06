@@ -34,7 +34,7 @@ value caml_alloc_some(value);
 #endif
 
 #define LLVMDiagnosticInfo_val(v) \
-  (*((LLVMDiagnosticInfo*) Data_abstract_val(v)))
+  (*((LLVMDiagnosticInfoRef*) Data_abstract_val(v)))
 #define LLVMContext_val(v) (*((LLVMContextRef*) Data_abstract_val(v)))
 #define LLVMAttribute_val(v) (*((LLVMAttributeRef*) Data_abstract_val(v)))
 #define LLVMModule_val(v) (*((LLVMModuleRef*) Data_abstract_val(v)))
