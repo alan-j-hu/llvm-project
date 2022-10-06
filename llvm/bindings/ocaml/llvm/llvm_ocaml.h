@@ -33,17 +33,15 @@
 value caml_alloc_some(value);
 #endif
 
-#define LLVMDiagnosticInfo_val(v) \
-  (*((LLVMDiagnosticInfoRef*) Data_abstract_val(v)))
-#define LLVMContext_val(v) (*((LLVMContextRef*) Data_abstract_val(v)))
-#define LLVMAttribute_val(v) (*((LLVMAttributeRef*) Data_abstract_val(v)))
-#define LLVMModule_val(v) (*((LLVMModuleRef*) Data_abstract_val(v)))
-#define LLVMMetadata_val(v) (*((LLVMMetadataRef*) Data_abstract_val(v)))
-#define LLVMType_val(v) (*((LLVMTypeRef*) Data_abstract_val(v)))
-#define LLVMValue_val(v) (*((LLVMValueRef*) Data_abstract_val(v)))
-#define LLVMUse_val(v) (*((LLVMUseRef*) Data_abstract_val(v)))
-#define LLVMInstr_val(v) (*((LLVMInstrRef*) Data_abstract_val(v)))
-#define LLVMBasicBlock_val(v) (*((LLVMBasicBlockRef*) Data_abstract_val(v)))
+#define DiagnosticInfo_val(v) (*((LLVMDiagnosticInfoRef*) Data_abstract_val(v)))
+#define Context_val(v) (*((LLVMContextRef*) Data_abstract_val(v)))
+#define Attribute_val(v) (*((LLVMAttributeRef*) Data_abstract_val(v)))
+#define Module_val(v) (*((LLVMModuleRef*) Data_abstract_val(v)))
+#define Metadata_val(v) (*((LLVMMetadataRef*) Data_abstract_val(v)))
+#define Type_val(v) (*((LLVMTypeRef*) Data_abstract_val(v)))
+#define Value_val(v) (*((LLVMValueRef*) Data_abstract_val(v)))
+#define Use_val(v) (*((LLVMUseRef*) Data_abstract_val(v)))
+#define BasicBlock_val(v) (*((LLVMBasicBlockRef*) Data_abstract_val(v)))
 
 /* Convert a C pointer to an OCaml option */
 value ptr_to_option(void *Ptr);
