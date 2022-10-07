@@ -126,45 +126,67 @@ static value alloc_value(LLVMValueRef Val) {
   return V;
 }
 
-static value alloc_variant(int tag, void *Value) {
+static value alloc_variant(int tag, value Value) {
   value Iter = caml_alloc_small(1, tag);
-  Field(Iter, 0) = Val_op(Value);
+  Field(Iter, 0) = Value;
   return Iter;
 }
 
 /* Macro to convert the C first/next/last/prev idiom to the Ocaml llpos/
    llrev_pos idiom. */
-#define DEFINE_ITERATORS(camlname, cname, pty, cty, pfun) \
-  /* llmodule -> ('a, 'b) llpos */                        \
-  value llvm_##camlname##_begin(pty Mom) {       \
-    cty First = LLVMGetFirst##cname(Mom);                 \
-    if (First)                                            \
-      return alloc_variant(1, First);                     \
-    return alloc_variant(0, Mom);                         \
-  }                                                       \
-                                                          \
-  /* llvalue -> ('a, 'b) llpos */                         \
-  value llvm_##camlname##_succ(cty Kid) {        \
-    cty Next = LLVMGetNext##cname(Kid);                   \
-    if (Next)                                             \
-      return alloc_variant(1, Next);                      \
-    return alloc_variant(0, pfun(Kid));                   \
-  }                                                       \
-                                                          \
-  /* llmodule -> ('a, 'b) llrev_pos */                    \
-  value llvm_##camlname##_end(pty Mom) {         \
-    cty Last = LLVMGetLast##cname(Mom);                   \
-    if (Last)                                             \
-      return alloc_variant(1, Last);                      \
-    return alloc_variant(0, Mom);                         \
-  }                                                       \
-                                                          \
-  /* llvalue -> ('a, 'b) llrev_pos */                     \
-  value llvm_##camlname##_pred(cty Kid) {        \
-    cty Prev = LLVMGetPrevious##cname(Kid);               \
-    if (Prev)                                             \
-      return alloc_variant(1, Prev);                      \
-    return alloc_variant(0, pfun(Kid));                   \
+#define DEFINE_ITERATORS(camlname, cname, pty_val, cty, cty_val, pfun) \
+  /* llmodule -> ('a, 'b) llpos */                                     \
+  value llvm_##camlname##_begin(value Mom) {                           \
+    CAMLparam1(Mom);                                                   \
+    CAMLlocal1(Box);                                                   \
+    Box = caml_alloc(1, Abstract_tag);                                 \
+    cty First = LLVMGetFirst##cname(pty_val(Mom));                     \
+    if (First) {                                                       \
+      cty_val(Box) = First;                                            \
+      CAMLreturn(alloc_variant(1, Box));                               \
+    }                                                                  \
+    CAMLreturn(alloc_variant(0, Mom));                                 \
+  }                                                                    \
+                                                                       \
+  /* llvalue -> ('a, 'b) llpos */                                      \
+  value llvm_##camlname##_succ(value Kid) {                            \
+    CAMLparam1(Kid);                                                   \
+    CAMLlocal1(Box);                                                   \
+    Box = caml_alloc(1, Abstract_tag);                                 \
+    cty Next = LLVMGetNext##cname(cty_val(Kid));                       \
+    if (Next) {                                                        \
+      cty_val(Box) = Next;                                             \
+      CAMLreturn(alloc_variant(1, Box));                               \
+    }                                                                  \
+    pty_val(Box) = pfun(cty_val(Kid));                                          \
+    CAMLreturn(alloc_variant(0, Box));                                 \
+  }                                                                    \
+                                                                       \
+  /* llmodule -> ('a, 'b) llrev_pos */                                 \
+  value llvm_##camlname##_end(value Mom) {                             \
+    CAMLparam1(Mom);                                                   \
+    CAMLlocal1(Box);                                                   \
+    Box = caml_alloc(1, Abstract_tag);                                 \
+    cty Last = LLVMGetLast##cname(pty_val(Mom));                       \
+    if (Last) {                                                        \
+      cty_val(Box) = Last;                                             \
+      CAMLreturn(alloc_variant(1, Box));                               \
+    }                                                                  \
+    CAMLreturn(alloc_variant(0, Mom));                                 \
+  }                                                                    \
+                                                                       \
+  /* llvalue -> ('a, 'b) llrev_pos */                                  \
+  value llvm_##camlname##_pred(value Kid) {                              \
+    CAMLparam1(Kid);                                                   \
+    CAMLlocal1(Box);                                                   \
+    Box = caml_alloc(1, Abstract_tag);                                 \
+    cty Prev = LLVMGetPrevious##cname(cty_val(Kid));                   \
+    if (Prev) {                                                        \
+      cty_val(Box) = Prev;                                             \
+      CAMLreturn(alloc_variant(1, Box));                              \
+    }                                                                  \
+    pty_val(Box) = pfun(cty_val(Kid));                                          \
+    CAMLreturn(alloc_variant(0, Box));                                 \
   }
 
 /*===-- Context error handling --------------------------------------------===*/
@@ -1639,7 +1661,7 @@ value llvm_used_value(value UR) {
 
 /*--... Operations on global variables .....................................--*/
 
-DEFINE_ITERATORS(global, Global, LLVMModuleRef, LLVMValueRef,
+DEFINE_ITERATORS(global, Global, Module_val, LLVMValueRef, Value_val,
                  LLVMGetGlobalParent)
 
 /* lltype -> string -> llmodule -> llvalue */
@@ -1826,7 +1848,7 @@ value llvm_add_alias2(value M, value ValueTy, value AddrSpace,
 
 /*--... Operations on functions ............................................--*/
 
-DEFINE_ITERATORS(function, Function, LLVMModuleRef, LLVMValueRef,
+DEFINE_ITERATORS(function, Function, Module_val, LLVMValueRef, Value_val,
                  LLVMGetGlobalParent)
 
 /* string -> lltype -> llmodule -> llvalue */
@@ -1958,7 +1980,8 @@ value llvm_remove_string_function_attr(value F, value Kind,
 
 /*--... Operations on parameters ...........................................--*/
 
-DEFINE_ITERATORS(param, Param, LLVMValueRef, LLVMValueRef, LLVMGetParamParent)
+DEFINE_ITERATORS(param, Param, Value_val, LLVMValueRef, Value_val,
+                 LLVMGetParamParent)
 
 /* llvalue -> int -> llvalue */
 value llvm_param(value Fn, value Index) {
@@ -1987,8 +2010,8 @@ value llvm_params(value Fn) {
 
 /*--... Operations on basic blocks .........................................--*/
 
-DEFINE_ITERATORS(block, BasicBlock, LLVMValueRef, LLVMBasicBlockRef,
-                 LLVMGetBasicBlockParent)
+DEFINE_ITERATORS(block, BasicBlock, Value_val, LLVMBasicBlockRef,
+                 BasicBlock_val, LLVMGetBasicBlockParent)
 
 /* llbasicblock -> llvalue option */
 value llvm_block_terminator(value Block) {
@@ -2068,7 +2091,7 @@ value llvm_value_is_block(value Val) {
 
 /*--... Operations on instructions .........................................--*/
 
-DEFINE_ITERATORS(instr, Instruction, LLVMBasicBlockRef, LLVMValueRef,
+DEFINE_ITERATORS(instr, Instruction, BasicBlock_val, LLVMValueRef, Value_val,
                  LLVMGetInstructionParent)
 
 /* llvalue -> Opcode.t */
