@@ -3279,31 +3279,39 @@ value llvm_build_freeze(value X, value Name, value B) {
 
 /* string -> llmemorybuffer
    raises IoError msg on error */
-LLVMMemoryBufferRef llvm_memorybuffer_of_file(value Path) {
+value llvm_memorybuffer_of_file(value Path) {
+  CAMLparam1(Path);
+  CAMLlocal1(Ret);
   char *Message;
   LLVMMemoryBufferRef MemBuf;
 
   if (LLVMCreateMemoryBufferWithContentsOfFile(String_val(Path), &MemBuf,
                                                &Message))
     llvm_raise(*caml_named_value("Llvm.IoError"), Message);
-
-  return MemBuf;
+  Ret = caml_alloc(1, Abstract_tag);
+  MemoryBuffer_val(Ret) = MemBuf;
+  CAMLreturn(Ret);
 }
 
 /* unit -> llmemorybuffer
    raises IoError msg on error */
-LLVMMemoryBufferRef llvm_memorybuffer_of_stdin(value Unit) {
+value llvm_memorybuffer_of_stdin(value Unit) {
+  CAMLparam1(Unit);
+  CAMLlocal1(Ret);
   char *Message;
   LLVMMemoryBufferRef MemBuf;
 
   if (LLVMCreateMemoryBufferWithSTDIN(&MemBuf, &Message))
     llvm_raise(*caml_named_value("Llvm.IoError"), Message);
-
-  return MemBuf;
+  Ret = caml_alloc(1, Abstract_tag);
+  MemoryBuffer_val(Ret) = MemBuf;
+  CAMLreturn(Ret);
 }
 
 /* ?name:string -> string -> llmemorybuffer */
-LLVMMemoryBufferRef llvm_memorybuffer_of_string(value Name, value String) {
+value llvm_memorybuffer_of_string(value Name, value String) {
+  CAMLparam2(Name, String);
+  CAMLlocal1(Ret);
   LLVMMemoryBufferRef MemBuf;
   const char *NameCStr;
 
@@ -3314,52 +3322,66 @@ LLVMMemoryBufferRef llvm_memorybuffer_of_string(value Name, value String) {
 
   MemBuf = LLVMCreateMemoryBufferWithMemoryRangeCopy(
       String_val(String), caml_string_length(String), NameCStr);
-
-  return MemBuf;
+  Ret = caml_alloc(1, Abstract_tag);
+  MemoryBuffer_val(Ret) = MemBuf;
+  CAMLreturn(Ret);
 }
 
 /* llmemorybuffer -> string */
-value llvm_memorybuffer_as_string(LLVMMemoryBufferRef MemBuf) {
+value llvm_memorybuffer_as_string(value MB) {
+  CAMLparam1(MB);
+  LLVMMemoryBufferRef MemBuf = MemoryBuffer_val(MB);
   size_t BufferSize = LLVMGetBufferSize(MemBuf);
   const char *BufferStart = LLVMGetBufferStart(MemBuf);
-  return cstr_to_string(BufferStart, BufferSize);
+  CAMLreturn(cstr_to_string(BufferStart, BufferSize));
 }
 
 /* llmemorybuffer -> unit */
-value llvm_memorybuffer_dispose(LLVMMemoryBufferRef MemBuf) {
-  LLVMDisposeMemoryBuffer(MemBuf);
-  return Val_unit;
+value llvm_memorybuffer_dispose(value MemBuf) {
+  CAMLparam1(MemBuf);
+  LLVMDisposeMemoryBuffer(MemoryBuffer_val(MemBuf));
+  CAMLreturn(Val_unit);
 }
 
 /*===-- Pass Managers -----------------------------------------------------===*/
 
 /* unit -> [ `Module ] PassManager.t */
-LLVMPassManagerRef llvm_passmanager_create(value Unit) {
-  return LLVMCreatePassManager();
+value llvm_passmanager_create(value Unit) {
+  CAMLparam1(Unit);
+  CAMLlocal1(Ret);
+  Ret = caml_alloc(1, Abstract_tag);
+  PassManager_val(Ret) = LLVMCreatePassManager();
+  CAMLreturn(Ret);
 }
 
 /* llmodule -> [ `Function ] PassManager.t -> bool */
-value llvm_passmanager_run_module(LLVMModuleRef M, LLVMPassManagerRef PM) {
-  return Val_bool(LLVMRunPassManager(PM, M));
+value llvm_passmanager_run_module(value M, value PM) {
+  CAMLparam2(M, PM);
+  CAMLreturn(Val_bool(LLVMRunPassManager(PassManager_val(PM), Module_val(M))));
 }
 
 /* [ `Function ] PassManager.t -> bool */
-value llvm_passmanager_initialize(LLVMPassManagerRef FPM) {
-  return Val_bool(LLVMInitializeFunctionPassManager(FPM));
+value llvm_passmanager_initialize(value FPM) {
+  CAMLparam1(FPM);
+  CAMLreturn(Val_bool(LLVMInitializeFunctionPassManager(PassManager_val(FPM))));
 }
 
 /* llvalue -> [ `Function ] PassManager.t -> bool */
-value llvm_passmanager_run_function(LLVMValueRef F, LLVMPassManagerRef FPM) {
-  return Val_bool(LLVMRunFunctionPassManager(FPM, F));
+value llvm_passmanager_run_function(value F, value FPM) {
+  CAMLparam2(F, FPM);
+  CAMLreturn(
+    Val_bool(LLVMRunFunctionPassManager(PassManager_val(FPM), Value_val(F))));
 }
 
 /* [ `Function ] PassManager.t -> bool */
-value llvm_passmanager_finalize(LLVMPassManagerRef FPM) {
-  return Val_bool(LLVMFinalizeFunctionPassManager(FPM));
+value llvm_passmanager_finalize(value FPM) {
+  CAMLparam1(FPM);
+  CAMLreturn(Val_bool(LLVMFinalizeFunctionPassManager(PassManager_val(FPM))));
 }
 
 /* PassManager.any PassManager.t -> unit */
-value llvm_passmanager_dispose(LLVMPassManagerRef PM) {
-  LLVMDisposePassManager(PM);
-  return Val_unit;
+value llvm_passmanager_dispose(value PM) {
+  CAMLparam1(PM);
+  LLVMDisposePassManager(PassManager_val(PM));
+  CAMLreturn(Val_unit);
 }

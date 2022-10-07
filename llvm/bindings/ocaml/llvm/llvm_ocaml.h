@@ -42,6 +42,8 @@ value caml_alloc_some(value);
 #define Value_val(v) (*((LLVMValueRef*) Data_abstract_val(v)))
 #define Use_val(v) (*((LLVMUseRef*) Data_abstract_val(v)))
 #define BasicBlock_val(v) (*((LLVMBasicBlockRef*) Data_abstract_val(v)))
+#define MemoryBuffer_val(v) (*((LLVMMemoryBufferRef*) Data_abstract_val(v)))
+#define PassManager_val(v) (*((LLVMPassManagerRef*) Data_abstract_val(v)))
 
 /* Convert a C pointer to an OCaml option */
 value ptr_to_option(void *Ptr);
