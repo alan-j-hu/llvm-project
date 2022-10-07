@@ -1996,7 +1996,7 @@ value llvm_basic_blocks(value Fn) {
   for (unsigned int i = 0; i < n; ++i) {
     value Box = caml_alloc(1, Abstract_tag);
     BasicBlock_val(Box) = (LLVMBasicBlockRef)Field(Temp, i);
-    Set_field(MLArray, i, Box);
+    Store_field(MLArray, i, Box);
   }
   CAMLreturn(MLArray);
 }
@@ -2044,7 +2044,7 @@ value llvm_insert_block(value Context, value Name, value BB) {
   CAMLparam3(Context, Name, BB);
   CAMLlocal1(Ret);
   BasicBlock_val(Ret) = LLVMInsertBasicBlockInContext(
-    Context_val(Context), LLVMBasicBlock_ref(BB), String_val(Name));
+    Context_val(Context), BasicBlock_val(BB), String_val(Name));
   CAMLreturn(Ret);
 }
 
@@ -2257,9 +2257,9 @@ value llvm_incoming(LLVMValueRef PhiNode) {
 }
 
 /* llvalue -> unit */
-value llvm_delete_instruction(LLVMValueRef Instruction) {
+value llvm_delete_instruction(value Instruction) {
   CAMLparam1(Instruction);
-  LLVMInstructionEraseFromParent(LLVMValue_va(Instruction));
+  LLVMInstructionEraseFromParent(Value_val(Instruction));
   CAMLreturn(Val_unit);
 }
 
@@ -2333,7 +2333,7 @@ value llvm_insert_into_builder(value I, value Name, value B) {
 /*--... Metadata ...........................................................--*/
 
 /* llbuilder -> llvalue -> unit */
-value llvm_set_current_debug_location(value B, LLVMValueRef V) {
+value llvm_set_current_debug_location(value B, value V) {
   CAMLparam2(B, V);
   LLVMSetCurrentDebugLocation(Builder_val(B), Value_val(V));
   CAMLreturn(Val_unit);
@@ -2375,308 +2375,415 @@ value llvm_build_ret(value Val, value B) {
 
 /* llvalue array -> llbuilder -> llvalue */
 LLVMValueRef llvm_build_aggregate_ret(value RetVals, value B) {
-  return LLVMBuildAggregateRet(Builder_val(B), (LLVMValueRef *)Op_val(RetVals),
-                               Wosize_val(RetVals));
+  CAMLparam2(RetVals, B);
+  CAMLlocal2(Temp, Ret);
+  unsigned int Count = Wosize_val(RetVals);
+  Temp = caml_alloc(Count, Abstract_tag);
+  for (unsigned int i = 0; i < Count; ++i) {
+    Field(Temp, i) = Value_val(Field(RetVals, i));
+  }
+  Ret = caml_alloc(1, Abstract_tag);
+  Value_val(Ret) =
+    LLVMBuildAggregateRet(Builder_val(B), (LLVMValueRef *)Op_val(Temp), Count);
+  CAMLreturn(Ret);
 }
 
 /* llbasicblock -> llbuilder -> llvalue */
-LLVMValueRef llvm_build_br(LLVMBasicBlockRef BB, value B) {
-  return LLVMBuildBr(Builder_val(B), BB);
+value llvm_build_br(value BB, value B) {
+  CAMLparam2(BB, B);
+  CAMLreturn(alloc_value(LLVMBuildBr(Builder_val(B), BasicBlock_val(BB))));
 }
 
 /* llvalue -> llbasicblock -> llbasicblock -> llbuilder -> llvalue */
-LLVMValueRef llvm_build_cond_br(LLVMValueRef If, LLVMBasicBlockRef Then,
-                                LLVMBasicBlockRef Else, value B) {
-  return LLVMBuildCondBr(Builder_val(B), If, Then, Else);
+value llvm_build_cond_br(value If, value Then, value Else, value B) {
+  CAMLparam4(If, Then, Else, B);
+  CAMLreturn(
+    alloc_value(LLVMBuildCondBr(Builder_val(B), Value_val(If),
+                                BasicBlock_val(Then), BasicBlock_val(Else))));
 }
 
 /* llvalue -> llbasicblock -> int -> llbuilder -> llvalue */
-LLVMValueRef llvm_build_switch(LLVMValueRef Of, LLVMBasicBlockRef Else,
-                               value EstimatedCount, value B) {
-  return LLVMBuildSwitch(Builder_val(B), Of, Else, Int_val(EstimatedCount));
+value llvm_build_switch(value Of, value Else, value EstimatedCount, value B) {
+  CAMLparam4(Of, Else, EstimatedCount, B);
+  CAMLreturn(
+    alloc_val(LLVMBuildSwitch(Builder_val(B), Value_val(Of),
+                              BasicBlock_val(Else), Int_val(EstimatedCount))));
 }
 
 /* lltype -> string -> llbuilder -> llvalue */
-LLVMValueRef llvm_build_malloc(LLVMTypeRef Ty, value Name, value B) {
-  return LLVMBuildMalloc(Builder_val(B), Ty, String_val(Name));
+value llvm_build_malloc(value Ty, value Name, value B) {
+  CAMLparam3(Ty, Name, B);
+  CAMLreturn(
+    alloc_val(LLVMBuildMalloc(Builder_val(B), Type_val(Ty), String_val(Name))));
 }
 
 /* lltype -> llvalue -> string -> llbuilder -> llvalue */
-LLVMValueRef llvm_build_array_malloc(LLVMTypeRef Ty, LLVMValueRef Val,
-                                     value Name, value B) {
-  return LLVMBuildArrayMalloc(Builder_val(B), Ty, Val, String_val(Name));
+value llvm_build_array_malloc(value Ty, value Val, value Name, value B) {
+  CAMLparam4(Ty, Val, Name, B);
+  CAMLreturn(
+    alloc_value(LLVMBuildArrayMalloc(Builder_val(B), Type_val(Ty),
+                                     Value_val(Val), String_val(Name))));
 }
 
 /* llvalue -> llbuilder -> llvalue */
-LLVMValueRef llvm_build_free(LLVMValueRef P, value B) {
-  return LLVMBuildFree(Builder_val(B), P);
+value llvm_build_free(value P, value B) {
+  CAMLparam2(P, B);
+  CAMLreturn(alloc_val(LLVMBuildFree(Builder_val(B), Value_val(P))));
 }
 
 /* llvalue -> llvalue -> llbasicblock -> unit */
-value llvm_add_case(LLVMValueRef Switch, LLVMValueRef OnVal,
-                    LLVMBasicBlockRef Dest) {
-  LLVMAddCase(Switch, OnVal, Dest);
-  return Val_unit;
+value llvm_add_case(value Switch, value OnVal, value Dest) {
+  CAMLparam3(Switch, OnVal, Dest);
+  LLVMAddCase(Value_val(Switch), Value_val(OnVal), BasicBlock_val(Dest));
+  CAMLreturn(Val_unit);
 }
 
-/* llvalue -> llbasicblock -> llbuilder -> llvalue */
-LLVMValueRef llvm_build_indirect_br(LLVMValueRef Addr, value EstimatedDests,
-                                    value B) {
-  return LLVMBuildIndirectBr(Builder_val(B), Addr, EstimatedDests);
+/* llvalue -> int -> llbuilder -> llvalue */
+value llvm_build_indirect_br(value Addr, value EstimatedDests, value B) {
+  CAMLparam3(Addr, EstimatedDests, B);
+  CAMLreturn(
+    alloc_value(LLVMBuildIndirectBr(Builder_val(B), Value_val(Addr),
+                                    Int_val(EstimatedDests))));
 }
 
-/* llvalue -> llvalue -> llbasicblock -> unit */
-value llvm_add_destination(LLVMValueRef IndirectBr, LLVMBasicBlockRef Dest) {
-  LLVMAddDestination(IndirectBr, Dest);
-  return Val_unit;
+/* llvalue -> llbasicblock -> unit */
+value llvm_add_destination(value IndirectBr, value Dest) {
+  CAMLparam2(IndirectBr, Dest);
+  LLVMAddDestination(Value_val(IndirectBr), BasicBlock_val(Dest));
+  CAMLreturn(Val_unit);
 }
 
 /* llvalue -> llvalue array -> llbasicblock -> llbasicblock -> string ->
    llbuilder -> llvalue */
-LLVMValueRef llvm_build_invoke_nat(LLVMValueRef Fn, value Args,
-                                   LLVMBasicBlockRef Then,
-                                   LLVMBasicBlockRef Catch, value Name,
-                                   value B) {
-  return LLVMBuildInvoke(Builder_val(B), Fn, (LLVMValueRef *)Op_val(Args),
-                         Wosize_val(Args), Then, Catch, String_val(Name));
+value llvm_build_invoke_nat(value Fn, value Args, value Then, value Catch,
+                            value Name, value B) {
+  CAMLparam5(Fn, Args, Then, Catch, Name);
+  CAMLxparam1(B);
+  CAMLlocal1(Temp);
+  unsigned int Count = Wosize_val(Args);
+  Temp = caml_alloc(Count, Abstract_tag);
+  for (unsigned int i = 0; i < Count; ++i) {
+    Field(Temp, i) = (value) Value_val(Field(Args, i));
+  }
+  CAMLreturn(
+    alloc_value(LLVMBuildInvoke(Builder_val(B), Value_val(Fn),
+               (LLVMValueRef *)Op_val(Temp), Count, BasicBlock_val(Then),
+               BasicBlock_val(Catch), String_val(Name))));
 }
 
 /* llvalue -> llvalue array -> llbasicblock -> llbasicblock -> string ->
    llbuilder -> llvalue */
-LLVMValueRef llvm_build_invoke_bc(value Args[], int NumArgs) {
-  return llvm_build_invoke_nat((LLVMValueRef)Args[0], Args[1],
-                               (LLVMBasicBlockRef)Args[2],
-                               (LLVMBasicBlockRef)Args[3], Args[4], Args[5]);
+value llvm_build_invoke_bc(value Args[], int NumArgs) {
+  return llvm_build_invoke_nat(Args[0], Args[1], Args[2],
+                               Args[3], Args[4], Args[5]);
 }
 
 /* lltype -> llvalue -> llvalue array -> llbasicblock -> llbasicblock ->
    string -> llbuilder -> llvalue */
-LLVMValueRef llvm_build_invoke2_nat(LLVMTypeRef FnTy, LLVMValueRef Fn,
-                                    value Args, LLVMBasicBlockRef Then,
-                                    LLVMBasicBlockRef Catch, value Name,
-                                    value B) {
-  return LLVMBuildInvoke2(Builder_val(B), FnTy, Fn,
-                          (LLVMValueRef *)Op_val(Args), Wosize_val(Args),
-                          Then, Catch, String_val(Name));
+value llvm_build_invoke2_nat(value FnTy, value Fn, value Args, value Then,
+                             value Catch, value Name, value B) {
+  CAMLparam5(FnTy, Fn, Args, Then, Catch);
+  CAMLxparam2(Name, B);
+  CAMLlocal1(Temp);
+  unsigned int Count = Wosize_val(Args);
+  Temp = caml_alloc(Count, Abstract_tag);
+  for (unsigned int i = 0; i < Count; ++i) {
+    Field(Temp, i) = (value)Value_val(Field(Args, i));
+  }
+  CAMLreturn(alloc_value(
+    LLVMBuildInvoke2(Builder_val(B), Type_val(FnTy), Value_val(Fn),
+                     (LLVMValueRef *)Op_val(Temp), Count,
+                     BasicBlock_val(Then), BasicBlock_val(Catch),
+                     String_val(Name))));
 }
 
 /* lltype -> llvalue -> llvalue array -> llbasicblock -> llbasicblock ->
    string -> llbuilder -> llvalue */
-LLVMValueRef llvm_build_invoke2_bc(value Args[], int NumArgs) {
-  return llvm_build_invoke2_nat((LLVMTypeRef)Args[0], (LLVMValueRef)Args[1],
-                                Args[2], (LLVMBasicBlockRef)Args[3],
-                               (LLVMBasicBlockRef)Args[4], Args[5], Args[6]);
+value llvm_build_invoke2_bc(value Args[], int NumArgs) {
+  return llvm_build_invoke2_nat(Args[0], Args[1], Args[2], Args[3],
+                                Args[4], Args[5], Args[6]);
 }
 
 /* lltype -> llvalue -> int -> string -> llbuilder -> llvalue */
-LLVMValueRef llvm_build_landingpad(LLVMTypeRef Ty, LLVMValueRef PersFn,
-                                   value NumClauses, value Name, value B) {
-  return LLVMBuildLandingPad(Builder_val(B), Ty, PersFn, Int_val(NumClauses),
-                             String_val(Name));
+value llvm_build_landingpad(value Ty, value PersFn, value NumClauses,
+                            value Name, value B) {
+  CAMLparam5(Ty, PersFn, NumClauses, Name, B);
+  CAMLreturn(
+    alloc_value(LLVMBuildLandingPad(Builder_val(B), Type_val(Ty),
+                                    Value_val(PersFn), Int_val(NumClauses),
+                                    String_val(Name))));
 }
 
 /* llvalue -> llvalue -> unit */
-value llvm_add_clause(LLVMValueRef LandingPadInst, LLVMValueRef ClauseVal) {
-  LLVMAddClause(LandingPadInst, ClauseVal);
-  return Val_unit;
+value llvm_add_clause(value LandingPadInst, value ClauseVal) {
+  CAMLparam2(LandingPadInst, ClauseVal);
+  LLVMAddClause(Value_val(LandingPadInst), Value_val(ClauseVal));
+  CAMLreturn(Val_unit);
 }
 
 /* llvalue -> bool */
-value llvm_is_cleanup(LLVMValueRef LandingPadInst) {
-  return Val_bool(LLVMIsCleanup(LandingPadInst));
+value llvm_is_cleanup(value LandingPadInst) {
+  CAMLparam1(LandingPadInst);
+  CAMLreturn(Val_bool(LLVMIsCleanup(Value_val(LandingPadInst))));
 }
 
 /* llvalue -> bool -> unit */
 value llvm_set_cleanup(LLVMValueRef LandingPadInst, value flag) {
-  LLVMSetCleanup(LandingPadInst, Bool_val(flag));
-  return Val_unit;
+  CAMLparam2(LandingPadInst, flag);
+  LLVMSetCleanup(Value_val(LandingPadInst), Bool_val(flag));
+  CAMLreturn(Val_unit);
 }
 
 /* llvalue -> llbuilder -> llvalue */
-LLVMValueRef llvm_build_resume(LLVMValueRef Exn, value B) {
-  return LLVMBuildResume(Builder_val(B), Exn);
+value llvm_build_resume(LLVMValueRef Exn, value B) {
+  CAMLparam2(Exn, B);
+  CAMLreturn(alloc_value(LLVMBuildResume(Builder_val(B), Value_val(Exn))));
 }
 
 /* llbuilder -> llvalue */
-LLVMValueRef llvm_build_unreachable(value B) {
-  return LLVMBuildUnreachable(Builder_val(B));
+value llvm_build_unreachable(value B) {
+  CAMLparam1(B);
+  CAMLreturn(alloc_value(LLVMBuildUnreachable(Builder_val(B))));
 }
 
 /*--... Arithmetic .........................................................--*/
 
 /* llvalue -> llvalue -> string -> llbuilder -> llvalue */
-LLVMValueRef llvm_build_add(LLVMValueRef LHS, LLVMValueRef RHS, value Name,
-                            value B) {
-  return LLVMBuildAdd(Builder_val(B), LHS, RHS, String_val(Name));
+value llvm_build_add(value LHS, value RHS, value Name, value B) {
+  CAMLparam4(LHS, RHS, Name, B);
+  CAMLreturn(
+    alloc_value(LLVMBuildAdd(Builder_val(B), Value_val(LHS), Value_val(RHS),
+                             String_val(Name))));
 }
 
 /* llvalue -> llvalue -> string -> llbuilder -> llvalue */
-LLVMValueRef llvm_build_nsw_add(LLVMValueRef LHS, LLVMValueRef RHS, value Name,
-                                value B) {
-  return LLVMBuildNSWAdd(Builder_val(B), LHS, RHS, String_val(Name));
+value llvm_build_nsw_add(value LHS, value RHS, value Name, value B) {
+  CAMLparam4(LHS, RHS, Name, B);
+  CAMLreturn(
+    alloc_value(LLVMBuildNSWAdd(Builder_val(B), Value_val(LHS), Value_val(RHS),
+                                String_val(Name))));
 }
 
 /* llvalue -> llvalue -> string -> llbuilder -> llvalue */
-LLVMValueRef llvm_build_nuw_add(LLVMValueRef LHS, LLVMValueRef RHS, value Name,
-                                value B) {
-  return LLVMBuildNUWAdd(Builder_val(B), LHS, RHS, String_val(Name));
+value llvm_build_nuw_add(value LHS, value RHS, value Name, value B) {
+  CAMLparam4(LHS, RHS, Name, B);
+  CAMLreturn(
+    alloc_value(LLVMBuildNUWAdd(Builder_val(B), Value_val(LHS),
+                                Value_val(RHS), String_val(Name))));
 }
 
 /* llvalue -> llvalue -> string -> llbuilder -> llvalue */
-LLVMValueRef llvm_build_fadd(LLVMValueRef LHS, LLVMValueRef RHS, value Name,
-                             value B) {
-  return LLVMBuildFAdd(Builder_val(B), LHS, RHS, String_val(Name));
+value llvm_build_fadd(value LHS, value RHS, value Name, value B) {
+  CAMLparam4(LHS, RHS, Name, B);
+  CAMLreturn(
+    alloc_value(LLVMBuildFAdd(Builder_val(B), Value_val(LHS), Value_val(RHS),
+                              String_val(Name))));
 }
 
 /* llvalue -> llvalue -> string -> llbuilder -> llvalue */
-LLVMValueRef llvm_build_sub(LLVMValueRef LHS, LLVMValueRef RHS, value Name,
-                            value B) {
-  return LLVMBuildSub(Builder_val(B), LHS, RHS, String_val(Name));
+value llvm_build_sub(value LHS, value RHS, value Name, value B) {
+  CAMLparam4(LHS, RHS, Name, B);
+  CAMLreturn(
+    alloc_value(LLVMBuildSub(Builder_val(B), Value_val(LHS), Value_val(RHS),
+                             String_val(Name))));
 }
 
 /* llvalue -> llvalue -> string -> llbuilder -> llvalue */
-LLVMValueRef llvm_build_nsw_sub(LLVMValueRef LHS, LLVMValueRef RHS, value Name,
-                                value B) {
-  return LLVMBuildNSWSub(Builder_val(B), LHS, RHS, String_val(Name));
+value llvm_build_nsw_sub(value LHS, value RHS, value Name, value B) {
+  CAMLparam4(LHS, RHS, Name, B);
+  CAMLreturn(
+    alloc_value(LLVMBuildNSWSub(Builder_val(B), Value_val(LHS), Value_val(RHS),
+                                String_val(Name))));
 }
 
 /* llvalue -> llvalue -> string -> llbuilder -> llvalue */
-LLVMValueRef llvm_build_nuw_sub(LLVMValueRef LHS, LLVMValueRef RHS, value Name,
-                                value B) {
-  return LLVMBuildNUWSub(Builder_val(B), LHS, RHS, String_val(Name));
+value llvm_build_nuw_sub(value LHS, value RHS, value Name, value B) {
+  CAMLparam4(LHS, RHS, Name, B);
+  CAMLreturn(
+    alloc_value(
+      LLVMBuildNUWSub(Builder_val(B), Value_val(LHS), Value_val(RHS),
+                      String_val(Name))));
 }
 
 /* llvalue -> llvalue -> string -> llbuilder -> llvalue */
-LLVMValueRef llvm_build_fsub(LLVMValueRef LHS, LLVMValueRef RHS, value Name,
-                             value B) {
-  return LLVMBuildFSub(Builder_val(B), LHS, RHS, String_val(Name));
+value llvm_build_fsub(value LHS, value RHS, value Name, value B) {
+  CAMLparam4(LHS, RHS, Name, B);
+  CAMLreturn(
+    alloc_value(LLVMBuildFSub(Builder_val(B), Value_val(LHS), Value_val(RHS),
+                              String_val(Name))));
 }
 
 /* llvalue -> llvalue -> string -> llbuilder -> llvalue */
-LLVMValueRef llvm_build_mul(LLVMValueRef LHS, LLVMValueRef RHS, value Name,
-                            value B) {
-  return LLVMBuildMul(Builder_val(B), LHS, RHS, String_val(Name));
+value llvm_build_mul(value LHS, value RHS, value Name, value B) {
+  CAMLparam4(LHS, RHS, Name, B);
+  CAMLreturn(
+    alloc_value(LLVMBuildMul(Builder_val(B), Value_val(LHS), Value_val(RHS),
+                             String_val(Name))));
 }
 
 /* llvalue -> llvalue -> string -> llbuilder -> llvalue */
-LLVMValueRef llvm_build_nsw_mul(LLVMValueRef LHS, LLVMValueRef RHS, value Name,
-                                value B) {
-  return LLVMBuildNSWMul(Builder_val(B), LHS, RHS, String_val(Name));
+value llvm_build_nsw_mul(value LHS, value RHS, value Name, value B) {
+  CAMLparam4(LHS, RHS, Name, B);
+  CAMLreturn(
+    alloc_value(LLVMBuildNSWMul(Builder_val(B), Value_val(LHS),
+                                Value_val(RHS), String_val(Name))));
 }
 
 /* llvalue -> llvalue -> string -> llbuilder -> llvalue */
-LLVMValueRef llvm_build_nuw_mul(LLVMValueRef LHS, LLVMValueRef RHS, value Name,
-                                value B) {
-  return LLVMBuildNUWMul(Builder_val(B), LHS, RHS, String_val(Name));
+value llvm_build_nuw_mul(value LHS, value RHS, value Name, value B) {
+  CAMLparam4(LHS, RHS, Name, B);
+  CAMLreturn(
+    alloc_value(LLVMBuildNUWMul(Builder_val(B), Value_val(LHS), Value_val(RHS),
+                                String_val(Name))));
 }
 
 /* llvalue -> llvalue -> string -> llbuilder -> llvalue */
-LLVMValueRef llvm_build_fmul(LLVMValueRef LHS, LLVMValueRef RHS, value Name,
-                             value B) {
-  return LLVMBuildFMul(Builder_val(B), LHS, RHS, String_val(Name));
+value llvm_build_fmul(value LHS, value RHS, value Name, value B) {
+  CAMLparam4(LHS, RHS, Name, B);
+  CAMLreturn(
+    alloc_value(LLVMBuildFMul(Builder_val(B), Value_val(LHS), Value_val(RHS),
+                              String_val(Name))));
 }
 
 /* llvalue -> llvalue -> string -> llbuilder -> llvalue */
-LLVMValueRef llvm_build_udiv(LLVMValueRef LHS, LLVMValueRef RHS, value Name,
-                             value B) {
-  return LLVMBuildUDiv(Builder_val(B), LHS, RHS, String_val(Name));
+value llvm_build_udiv(value LHS, value RHS, value Name, value B) {
+  CAMLparam4(LHS, RHS, Name, B);
+  CAMLreturn(
+    alloc_value(LLVMBuildUDiv(Builder_val(B), Value_val(LHS), Value_val(RHS),
+                              String_val(Name))));
 }
 
 /* llvalue -> llvalue -> string -> llbuilder -> llvalue */
-LLVMValueRef llvm_build_sdiv(LLVMValueRef LHS, LLVMValueRef RHS, value Name,
-                             value B) {
-  return LLVMBuildSDiv(Builder_val(B), LHS, RHS, String_val(Name));
+value llvm_build_sdiv(value LHS, value RHS, value Name, value B) {
+  CAMLparam4(LHS, RHS, Name, B);
+  CAMLreturn(
+    alloc_value(LLVMBuildSDiv(Builder_val(B), Value_val(LHS), Value_val(RHS),
+                              String_val(Name))));
 }
 
 /* llvalue -> llvalue -> string -> llbuilder -> llvalue */
-LLVMValueRef llvm_build_exact_sdiv(LLVMValueRef LHS, LLVMValueRef RHS,
-                                   value Name, value B) {
-  return LLVMBuildExactSDiv(Builder_val(B), LHS, RHS, String_val(Name));
+value llvm_build_exact_sdiv(value LHS, value RHS, value Name, value B) {
+  CAMLparam4(LHS, RHS, Name, B);
+  CAMLreturn(
+    alloc_value(LLVMBuildExactSDiv(Builder_val(B), Value_val(LHS),
+                                   Value_val(RHS), String_val(Name))));
 }
 
 /* llvalue -> llvalue -> string -> llbuilder -> llvalue */
-LLVMValueRef llvm_build_fdiv(LLVMValueRef LHS, LLVMValueRef RHS, value Name,
-                             value B) {
-  return LLVMBuildFDiv(Builder_val(B), LHS, RHS, String_val(Name));
+value llvm_build_fdiv(value LHS, value RHS, value Name, value B) {
+  CAMLparam4(LHS, RHS, Name, B);
+  CAMLreturn(
+    alloc_value(LLVMBuildFDiv(Builder_val(B), Value_val(LHS), Value_val(RHS),
+                              String_val(Name))));
 }
 
 /* llvalue -> llvalue -> string -> llbuilder -> llvalue */
-LLVMValueRef llvm_build_urem(LLVMValueRef LHS, LLVMValueRef RHS, value Name,
-                             value B) {
-  return LLVMBuildURem(Builder_val(B), LHS, RHS, String_val(Name));
+value llvm_build_urem(value LHS, value RHS, value Name, value B) {
+  CAMLparam4(LHS, RHS, Name, B);
+  CAMLreturn(
+    alloc_value(LLVMBuildURem(Builder_val(B), Value_val(LHS),
+                              Value_val(RHS), String_val(Name))));
 }
 
 /* llvalue -> llvalue -> string -> llbuilder -> llvalue */
-LLVMValueRef llvm_build_srem(LLVMValueRef LHS, LLVMValueRef RHS, value Name,
-                             value B) {
-  return LLVMBuildSRem(Builder_val(B), LHS, RHS, String_val(Name));
+value llvm_build_srem(value LHS, value RHS, value Name, value B) {
+  CAMLparam4(LHS, RHS, Name, B);
+  CAMLreturn(
+    alloc_value(LLVMBuildSRem(Builder_val(B), Value_val(LHS),
+                              Value_val(RHS), String_val(Name))));
 }
 
 /* llvalue -> llvalue -> string -> llbuilder -> llvalue */
-LLVMValueRef llvm_build_frem(LLVMValueRef LHS, LLVMValueRef RHS, value Name,
-                             value B) {
-  return LLVMBuildFRem(Builder_val(B), LHS, RHS, String_val(Name));
+value llvm_build_frem(value LHS, value RHS, value Name, value B) {
+  CAMLparam4(LHS, RHS, Name, B);
+  CAMLreturn(
+    alloc_value(LLVMBuildFRem(Builder_val(B), Value_val(LHS), Value_val(RHS),
+                              String_val(Name))));
 }
 
 /* llvalue -> llvalue -> string -> llbuilder -> llvalue */
-LLVMValueRef llvm_build_shl(LLVMValueRef LHS, LLVMValueRef RHS, value Name,
-                            value B) {
-  return LLVMBuildShl(Builder_val(B), LHS, RHS, String_val(Name));
+value llvm_build_shl(value LHS, value RHS, value Name, value B) {
+  CAMLparam4(LHS, RHS, Name, B);
+  CAMLreturn(
+    alloc_value(LLVMBuildShl(Builder_val(B), Value_val(LHS), Value_val(RHS),
+                             String_val(Name))));
 }
 
 /* llvalue -> llvalue -> string -> llbuilder -> llvalue */
-LLVMValueRef llvm_build_lshr(LLVMValueRef LHS, LLVMValueRef RHS, value Name,
-                             value B) {
-  return LLVMBuildLShr(Builder_val(B), LHS, RHS, String_val(Name));
+value llvm_build_lshr(value LHS, value RHS, value Name, value B) {
+  CAMLparam4(LHS, RHS, Name, B);
+  CAMLreturn(
+    alloc_value(LLVMBuildLShr(Builder_val(B), Value_val(LHS), Value_val(RHS),
+                              String_val(Name))));
 }
 
 /* llvalue -> llvalue -> string -> llbuilder -> llvalue */
-LLVMValueRef llvm_build_ashr(LLVMValueRef LHS, LLVMValueRef RHS, value Name,
-                             value B) {
-  return LLVMBuildAShr(Builder_val(B), LHS, RHS, String_val(Name));
+value llvm_build_ashr(value LHS, value RHS, value Name, value B) {
+  CAMLparam4(LHS, RHS, Name, B);
+  CAMLreturn(
+    alloc_value(LLVMBuildAShr(Builder_val(B), Value_val(LHS), Value_val(RHS),
+                String_val(Name))));
 }
 
 /* llvalue -> llvalue -> string -> llbuilder -> llvalue */
-LLVMValueRef llvm_build_and(LLVMValueRef LHS, LLVMValueRef RHS, value Name,
-                            value B) {
-  return LLVMBuildAnd(Builder_val(B), LHS, RHS, String_val(Name));
+value llvm_build_and(value LHS, value RHS, value Name, value B) {
+  CAMLparam4(LHS, RHS, Name, B);
+  CAMLreturn(
+    alloc_value(LLVMBuildAnd(Builder_val(B), Value_val(LHS),
+                             Value_val(RHS), String_val(Name))));
 }
 
 /* llvalue -> llvalue -> string -> llbuilder -> llvalue */
-LLVMValueRef llvm_build_or(LLVMValueRef LHS, LLVMValueRef RHS, value Name,
-                           value B) {
-  return LLVMBuildOr(Builder_val(B), LHS, RHS, String_val(Name));
+value llvm_build_or(value LHS, value RHS, value Name, value B) {
+  CAMLparam4(LHS, RHS, Name, B);
+  CAMLreturn(
+    alloc_value(LLVMBuildOr(Builder_val(B), Value_val(LHS),
+                            Value_val(RHS), String_val(Name))));
 }
 
 /* llvalue -> llvalue -> string -> llbuilder -> llvalue */
-LLVMValueRef llvm_build_xor(LLVMValueRef LHS, LLVMValueRef RHS, value Name,
-                            value B) {
-  return LLVMBuildXor(Builder_val(B), LHS, RHS, String_val(Name));
+value llvm_build_xor(value LHS, value RHS, value Name, value B) {
+  CAMLparam4(LHS, RHS, Name, B);
+  CAMLreturn(
+    alloc_value(LLVMBuildXor(Builder_val(B), Value_val(LHS), Value_val(RHS),
+                             String_val(Name))));
 }
 
 /* llvalue -> string -> llbuilder -> llvalue */
-LLVMValueRef llvm_build_neg(LLVMValueRef X, value Name, value B) {
-  return LLVMBuildNeg(Builder_val(B), X, String_val(Name));
+value llvm_build_neg(value X, value Name, value B) {
+  CAMLparam3(X, Name, B);
+  CAMLreturn(
+    alloc_value(LLVMBuildNeg(Builder_val(B), Value_val(X), String_val(Name))));
 }
 
 /* llvalue -> string -> llbuilder -> llvalue */
-LLVMValueRef llvm_build_nsw_neg(LLVMValueRef X, value Name, value B) {
-  return LLVMBuildNSWNeg(Builder_val(B), X, String_val(Name));
+value llvm_build_nsw_neg(value X, value Name, value B) {
+  CAMLparam3(X, Name, B);
+  CAMLreturn(
+    alloc_value(LLVMBuildNSWNeg(Builder_val(B), Value_val(X),
+                                String_val(Name))));
 }
 
 /* llvalue -> string -> llbuilder -> llvalue */
-LLVMValueRef llvm_build_nuw_neg(LLVMValueRef X, value Name, value B) {
-  return LLVMBuildNUWNeg(Builder_val(B), X, String_val(Name));
+value llvm_build_nuw_neg(value X, value Name, value B) {
+  CAMLparam3(X, Name, B);
+  CAMLreturn(
+    alloc_value(LLVMBuildNUWNeg(Builder_val(B), Value_val(X),
+                                String_val(Name))));
 }
 
 /* llvalue -> string -> llbuilder -> llvalue */
-LLVMValueRef llvm_build_fneg(LLVMValueRef X, value Name, value B) {
-  return LLVMBuildFNeg(Builder_val(B), X, String_val(Name));
+value llvm_build_fneg(value X, value Name, value B) {
+  CAMLparam3(X, Name, B);
+  CAMLreturn(
+    alloc_value(LLVMBuildFNeg(Builder_val(B), Value_val(X), String_val(Name))));
 }
 
 /* llvalue -> string -> llbuilder -> llvalue */
-LLVMValueRef llvm_build_not(LLVMValueRef X, value Name, value B) {
-  return LLVMBuildNot(Builder_val(B), X, String_val(Name));
+value llvm_build_not(value X, value Name, value B) {
+  CAMLparam3(X, Name, B);
+  CAMLreturn(
+    alloc_value(LLVMBuildNot(Builder_val(B), Value_val(X), String_val(Name))));
 }
 
 /*--... Memory .............................................................--*/
