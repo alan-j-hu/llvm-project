@@ -33,17 +33,35 @@
 value caml_alloc_some(value);
 #endif
 
-#define DiagnosticInfo_val(v) (*((LLVMDiagnosticInfoRef*) Data_abstract_val(v)))
-#define Context_val(v) (*((LLVMContextRef*) Data_abstract_val(v)))
-#define Attribute_val(v) (*((LLVMAttributeRef*) Data_abstract_val(v)))
-#define Module_val(v) (*((LLVMModuleRef*) Data_abstract_val(v)))
-#define Metadata_val(v) (*((LLVMMetadataRef*) Data_abstract_val(v)))
-#define Type_val(v) (*((LLVMTypeRef*) Data_abstract_val(v)))
-#define Value_val(v) (*((LLVMValueRef*) Data_abstract_val(v)))
-#define Use_val(v) (*((LLVMUseRef*) Data_abstract_val(v)))
-#define BasicBlock_val(v) (*((LLVMBasicBlockRef*) Data_abstract_val(v)))
-#define MemoryBuffer_val(v) (*((LLVMMemoryBufferRef*) Data_abstract_val(v)))
-#define PassManager_val(v) (*((LLVMPassManagerRef*) Data_abstract_val(v)))
+value to_val(void* ptr) {
+  if ((((value) ptr) & 1) == 0) {
+    return ((value) ptr) + 1;
+  } else {
+    value v = caml_alloc(1, Abstract_tag);
+    *((void**) Data_abstract_val(v)) = ptr;
+    return v;
+  }
+}
+
+void* from_val(value v) {
+  if (Is_long(v)) {
+    return (void*) (v - 1);
+  } else {
+    return *((void**) Data_abstract_val(v));
+  }
+}
+
+#define DiagnosticInfo_val(v) ((LLVMDiagnosticInfoRef) from_val(v))
+#define Context_val(v) ((LLVMContextRef) from_val(v))
+#define Attribute_val(v) ((LLVMAttributeRef) from_val(v))
+#define Module_val(v) ((LLVMModuleRef) from_val(v))
+#define Metadata_val(v) ((LLVMMetadataRef) from_val(v))
+#define Type_val(v) ((LLVMTypeRef) from_val(v))
+#define Value_val(v) ((LLVMValueRef) from_val(v))
+#define Use_val(v) ((LLVMUseRef) from_val(v))
+#define BasicBlock_val(v) ((LLVMBasicBlockRef) from_val(v))
+#define MemoryBuffer_val(v) ((LLVMMemoryBufferRef) from_val(v))
+#define PassManager_val(v) ((LLVMPassManagerRef) from_val(v))
 
 /* Convert a C pointer to an OCaml option */
 value ptr_to_option(void *Ptr);
