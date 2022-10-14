@@ -417,7 +417,7 @@ static const Symbol *getAlternativeSpelling(const Undefined &sym,
   if (sym.getFile() && sym.getFile()->kind() == InputFile::ObjKind) {
     // Build a map of local defined symbols.
     for (const Symbol *s : sym.getFile()->symbols)
-      if (auto *defined = dyn_cast<Defined>(s))
+      if (auto *defined = dyn_cast_or_null<Defined>(s))
         if (!defined->isExternal())
           map.try_emplace(s->getName(), s);
   }

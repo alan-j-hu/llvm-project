@@ -1005,7 +1005,7 @@ static bool isDimSequencePreserved(AffineMap indexingMap,
 // ```mlir
 // #map = affine_map<(d0, d1) -> (d0, d1)>
 // %1 = tensor.expand_shape %0 [[0, 1]] : tensor<?xf32> into tensor<?x4xf32>
-// %2 = linalg.init_tensor [..] : tensor<?x4xf32>
+// %2 = tensor.empty [..] : tensor<?x4xf32>
 // %3 = linalg.generic {
 //     indexing_maps = [#map, #map],
 //     iterator_types = ["parallel" ,"parallel"]}
@@ -1016,7 +1016,7 @@ static bool isDimSequencePreserved(AffineMap indexingMap,
 //
 // ```mlir
 // #map = affine_map<(d0) -> (d0)>
-// %2 = linalg.init_tensor [..] : tensor<?xf32>
+// %2 = tensor.empty [..] : tensor<?xf32>
 // %3 = linalg.generic {
 //     indexing_maps = [#map, #map],
 //     iterator_types = ["parallel"]}
@@ -1030,7 +1030,7 @@ static bool isDimSequencePreserved(AffineMap indexingMap,
 // #map0 = affine_map<(d0, d1) -> (d0, d1)>
 // #map1 = affine_map<(d0, d1) -> (d1, d0)>
 // %1 = tensor.expand_shape %0 [[0, 1]] : tensor<?xf32> into tensor<?x4xf32>
-// %2 = linalg.init_tensor [..] : tensor<4x?xf32>
+// %2 = tensor.empty [..] : tensor<4x?xf32>
 // %2 = linalg.generic {
 //     indexing_maps = [#map0, #map1],
 //     iterator_types = ["parallel" ,"parallel"]}
@@ -1367,7 +1367,7 @@ void generateCollapsedIndexingRegion(Location loc, Block *block,
 /// Implementation of fusion with reshape operation by collapsing dimensions.
 static FailureOr<SmallVector<Value>> collapseGenericOpIterationDims(
     GenericOp genericOp, ArrayRef<ReassociationIndices> foldedIterationDims,
-    OpOperand *fusableOpOperand, PatternRewriter &rewriter) {
+    PatternRewriter &rewriter) {
   // Bail on trivial no-op cases.
   if (genericOp.getNumLoops() <= 1 || foldedIterationDims.empty() ||
       llvm::all_of(foldedIterationDims, [](ReassociationIndicesRef foldedDims) {
@@ -1510,7 +1510,7 @@ public:
 
       Optional<SmallVector<Value>> replacements =
           collapseGenericOpIterationDims(genericOp, collapsableIterationDims,
-                                         opOperand, rewriter);
+                                         rewriter);
       if (!replacements) {
         return rewriter.notifyMatchFailure(
             genericOp, "failed to do the fusion by collapsing transformation");
@@ -1525,6 +1525,37 @@ public:
 private:
   ControlFusionFn controlFoldingReshapes;
 };
+
+/// Pattern to collapse dimensions.
+class CollapseLinalgDimensions : public OpRewritePattern<GenericOp> {
+public:
+  CollapseLinalgDimensions(MLIRContext *context,
+                           GetCollapsableDimensionsFn collapseDimensions,
+                           PatternBenefit benefit = 1)
+      : OpRewritePattern<GenericOp>(context, benefit),
+        controlCollapseDimension(std::move(collapseDimensions)) {}
+
+  LogicalResult matchAndRewrite(GenericOp genericOp,
+                                PatternRewriter &rewriter) const override {
+    SmallVector<ReassociationIndices> collapsableIterationDims =
+        controlCollapseDimension(genericOp);
+    if (collapsableIterationDims.empty())
+      return failure();
+
+    Optional<SmallVector<Value>> replacements = collapseGenericOpIterationDims(
+        genericOp, collapsableIterationDims, rewriter);
+    if (!replacements) {
+      return rewriter.notifyMatchFailure(genericOp,
+                                         "failed to collpase dimensions");
+    }
+    rewriter.replaceOp(genericOp, *replacements);
+    return success();
+  }
+
+private:
+  GetCollapsableDimensionsFn controlCollapseDimension;
+};
+
 } // namespace
 
 //===---------------------------------------------------------------------===//
@@ -1643,8 +1674,8 @@ public:
 //===---------------------------------------------------------------------===//
 
 namespace {
-/// Forces `outs` operands of linalg operations to use `linalg.init_tensor` if
-/// the value of the `outs` operand is not used within the op.  This is only
+/// Forces `outs` operands of linalg operations to use `tensor.empty` if the
+/// value of the `outs` operand is not used within the op.  This is only
 /// implemented for `linalg.generic` operations for now, but should hold for all
 /// linalg structured ops.
 struct RemoveOutsDependency : public OpRewritePattern<GenericOp> {
@@ -1666,8 +1697,8 @@ struct RemoveOutsDependency : public OpRewritePattern<GenericOp> {
         if (sparse_tensor::getSparseTensorEncoding(operandVal.getType()))
           continue;
 
-        // If outs is already an `init_tensor` operation, nothing to do.
-        auto definingOp = operandVal.getDefiningOp<InitTensorOp>();
+        // If outs is already an `empty` operation, nothing to do.
+        auto definingOp = operandVal.getDefiningOp<tensor::EmptyOp>();
         if (definingOp)
           continue;
         modifiedOutput = true;
@@ -1678,10 +1709,10 @@ struct RemoveOutsDependency : public OpRewritePattern<GenericOp> {
           dynamicDims.push_back(rewriter.createOrFold<tensor::DimOp>(
               loc, operandVal, dim.index()));
         }
-        Value initTensor = rewriter.create<InitTensorOp>(
-            loc, dynamicDims, operandType.getShape(),
-            operandType.getElementType());
-        op->setOperand(opOperand->getOperandNumber(), initTensor);
+        Value emptyTensor = rewriter.create<tensor::EmptyOp>(
+            loc, operandType.getShape(), operandType.getElementType(),
+            dynamicDims);
+        op->setOperand(opOperand->getOperandNumber(), emptyTensor);
       }
     }
     if (!modifiedOutput) {
@@ -1741,6 +1772,13 @@ void mlir::linalg::populateElementwiseOpsFusionPatterns(
   patterns.add<FuseElementwiseOps>(context, controlElementwiseOpsFusion);
   patterns.add<FoldFillWithGenericOp, FoldScalarOrSplatConstant,
                RemoveOutsDependency>(context);
+}
+
+void mlir::linalg::populateCollapseDimensions(
+    RewritePatternSet &patterns,
+    const GetCollapsableDimensionsFn &controlCollapseDimensions) {
+  patterns.add<CollapseLinalgDimensions>(patterns.getContext(),
+                                         controlCollapseDimensions);
 }
 
 //===---------------------------------------------------------------------===//

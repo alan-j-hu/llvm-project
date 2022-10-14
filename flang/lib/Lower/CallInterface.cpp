@@ -88,6 +88,36 @@ bool Fortran::lower::CallerInterface::isIndirectCall() const {
   return false;
 }
 
+bool Fortran::lower::CallerInterface::requireDispatchCall() const {
+  // calls with NOPASS attribute still have their component so check if it is
+  // polymorphic.
+  if (const Fortran::evaluate::Component *component =
+          procRef.proc().GetComponent()) {
+    if (Fortran::semantics::IsPolymorphic(component->GetFirstSymbol()))
+      return true;
+  }
+  // calls with PASS attribute have the passed-object already set in its
+  // arguments. Just check if their is one.
+  std::optional<unsigned> passArg = getPassArgIndex();
+  if (passArg)
+    return true;
+  return false;
+}
+
+std::optional<unsigned>
+Fortran::lower::CallerInterface::getPassArgIndex() const {
+  unsigned passArgIdx = 0;
+  std::optional<unsigned> passArg = std::nullopt;
+  for (const auto &arg : getCallDescription().arguments()) {
+    if (arg && arg->isPassedObject()) {
+      passArg = passArgIdx;
+      break;
+    }
+    ++passArgIdx;
+  }
+  return passArg;
+}
+
 const Fortran::semantics::Symbol *
 Fortran::lower::CallerInterface::getIfIndirectCallSymbol() const {
   if (const Fortran::semantics::Symbol *symbol = procRef.proc().GetSymbol())
@@ -797,9 +827,14 @@ private:
     Fortran::common::TypeCategory cat = dynamicType.category();
     // DERIVED
     if (cat == Fortran::common::TypeCategory::Derived) {
-      if (dynamicType.IsPolymorphic())
+      // TODO is kept under experimental flag until feature is complete.
+      if (dynamicType.IsPolymorphic() &&
+          !getConverter().getLoweringOptions().isPolymorphicTypeImplEnabled())
         TODO(interface.converter.getCurrentLocation(),
              "support for polymorphic types");
+
+      if (dynamicType.IsUnlimitedPolymorphic())
+        return mlir::NoneType::get(&mlirContext);
       return getConverter().genType(dynamicType.GetDerivedTypeSpec());
     }
     // CHARACTER with compile time constant length.
@@ -860,16 +895,17 @@ private:
       type = fir::HeapType::get(type);
     if (obj.attrs.test(Attrs::Pointer))
       type = fir::PointerType::get(type);
-    mlir::Type boxType = fir::BoxType::get(type);
+    mlir::Type boxType = fir::wrapInClassOrBoxType(
+        type, obj.type.type().IsPolymorphic(), obj.type.type().IsAssumedType());
 
     if (obj.attrs.test(Attrs::Allocatable) || obj.attrs.test(Attrs::Pointer)) {
-      // Pass as fir.ref<fir.box>
+      // Pass as fir.ref<fir.box> or fir.ref<fir.class>
       mlir::Type boxRefType = fir::ReferenceType::get(boxType);
       addFirOperand(boxRefType, nextPassedArgPosition(), Property::MutableBox,
                     attrs);
       addPassedArg(PassEntityBy::MutableBox, entity, characteristics);
     } else if (dummyRequiresBox(obj)) {
-      // Pass as fir.box
+      // Pass as fir.box or fir.class
       if (isValueAttr)
         TODO(loc, "assumed shape dummy argument with VALUE attribute");
       addFirOperand(boxType, nextPassedArgPosition(), Property::Box, attrs);
@@ -954,12 +990,19 @@ private:
     assert(typeAndShape && "expect type for non proc pointer result");
     mlir::Type mlirType = translateDynamicType(typeAndShape->type());
     fir::SequenceType::Shape bounds = getBounds(typeAndShape->shape());
+    const auto *resTypeAndShape{result.GetTypeAndShape()};
+    bool resIsPolymorphic =
+        resTypeAndShape && resTypeAndShape->type().IsPolymorphic();
+    bool resIsAssumedType =
+        resTypeAndShape && resTypeAndShape->type().IsAssumedType();
     if (!bounds.empty())
       mlirType = fir::SequenceType::get(bounds, mlirType);
     if (result.attrs.test(Attr::Allocatable))
-      mlirType = fir::BoxType::get(fir::HeapType::get(mlirType));
+      mlirType = fir::wrapInClassOrBoxType(fir::HeapType::get(mlirType),
+                                           resIsPolymorphic, resIsAssumedType);
     if (result.attrs.test(Attr::Pointer))
-      mlirType = fir::BoxType::get(fir::PointerType::get(mlirType));
+      mlirType = fir::wrapInClassOrBoxType(fir::PointerType::get(mlirType),
+                                           resIsPolymorphic, resIsAssumedType);
 
     if (fir::isa_char(mlirType)) {
       // Character scalar results must be passed as arguments in lowering so

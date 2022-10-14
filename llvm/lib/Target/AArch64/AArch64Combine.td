@@ -203,11 +203,11 @@ def split_store_zero_128 : GICombineRule<
   (apply [{ applySplitStoreZero128(*${d}, MRI, B, Observer); }])
 >;
 
-def sext_via_shifts_of_vcmp : GICombineRule<
-  (defs root:$d, register_matchinfo:$info),
-  (match (wip_match_opcode G_ASHR):$d,
-          [{ return matchSextViaShiftsOfVCmp(*${d}, MRI, ${info}); }]),
-  (apply [{ Helper.replaceSingleDefInstWithReg(*${d}, ${info}); }])
+def vector_sext_inreg_to_shift : GICombineRule<
+  (defs root:$d),
+  (match (wip_match_opcode G_SEXT_INREG):$d,
+          [{ return matchVectorSextInReg(*${d}, MRI); }]),
+  (apply [{ applyVectorSextInReg(*${d}, MRI, B, Observer); }])
 >;
 
 // Post-legalization combines which should happen at all optimization levels.
@@ -217,7 +217,8 @@ def AArch64PostLegalizerLoweringHelper
     : GICombinerHelper<"AArch64GenPostLegalizerLoweringHelper",
                        [shuffle_vector_lowering, vashr_vlshr_imm,
                         icmp_lowering, build_vector_lowering,
-                        lower_vector_fcmp, form_truncstore]> {
+                        lower_vector_fcmp, form_truncstore,
+                        vector_sext_inreg_to_shift]> {
   let DisableRuleOption = "aarch64postlegalizerlowering-disable-rule";
 }
 
@@ -236,6 +237,6 @@ def AArch64PostLegalizerCombinerHelper
                         constant_fold, identity_combines,
                         ptr_add_immed_chain, overlapping_and,
                         split_store_zero_128, undef_combines,
-                        select_to_minmax, sext_via_shifts_of_vcmp]> {
+                        select_to_minmax]> {
   let DisableRuleOption = "aarch64postlegalizercombiner-disable-rule";
 }
