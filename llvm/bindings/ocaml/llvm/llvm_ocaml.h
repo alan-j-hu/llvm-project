@@ -33,23 +33,11 @@
 value caml_alloc_some(value);
 #endif
 
-value to_val(void* ptr) {
-  if ((((value) ptr) & 1) == 0) {
-    return ((value) ptr) + 1;
-  } else {
-    value v = caml_alloc(1, Abstract_tag);
-    *((void**) Data_abstract_val(v)) = ptr;
-    return v;
-  }
-}
+value to_val(void* ptr);
 
-void* from_val(value v) {
-  if (Is_long(v)) {
-    return (void*) (v - 1);
-  } else {
-    return *((void**) Data_abstract_val(v));
-  }
-}
+void* from_val(value v);
+
+void* alloc_temp(value Elements);
 
 #define DiagnosticInfo_val(v) ((LLVMDiagnosticInfoRef) from_val(v))
 #define Context_val(v) ((LLVMContextRef) from_val(v))

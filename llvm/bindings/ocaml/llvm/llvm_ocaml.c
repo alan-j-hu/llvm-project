@@ -112,6 +112,33 @@ value llvm_parse_command_line_options(value Overview, value Args) {
   return Val_unit;
 }
 
+value to_val(void* ptr) {
+  if ((((value) ptr) & 1) == 0) {
+    return ((value) ptr) + 1;
+  } else {
+    value v = caml_alloc(1, Abstract_tag);
+    *((void**) Data_abstract_val(v)) = ptr;
+    return v;
+  }
+}
+
+void* from_val(value v) {
+  if (Is_long(v)) {
+    return (void*) (v - 1);
+  } else {
+    return *((void**) Data_abstract_val(v));
+  }
+}
+
+void* alloc_temp(value Elements) {
+  unsigned int Count = Wosize_val(Elements);
+  void* Temp = malloc(sizeof(void*) * Count);
+  for (unsigned int i = 0; i < Count; ++i) {
+    Temp[i] = from_val(Field(Elements, i));
+  }
+  return Temp;
+}
+
 static value alloc_variant(int tag, value Value) {
   value Iter = caml_alloc_small(1, tag);
   Field(Iter, 0) = Value;
