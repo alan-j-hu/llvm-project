@@ -21,6 +21,8 @@
 #include "caml/mlvalues.h"
 #include "caml/memory.h"
 
+#include "llvm_ocaml.h"
+
 /* Llvm.llmodule -> string -> bool */
 value llvm_write_bitcode_file(value M, value Path) {
   CAMLparam2(M, Path);
@@ -45,7 +47,7 @@ value llvm_write_bitcode_to_fd(value U, value M, value FD) {
 }
 
 /* Llvm.llmodule -> Llvm.llmemorybuffer */
-value llvm_write_bitcode_to_memory_buffer(LLVMModuleRef M) {
+value llvm_write_bitcode_to_memory_buffer(value M) {
   CAMLparam1(M);
   CAMLreturn(LLVMWriteBitcodeToMemoryBuffer(Module_val(M)));
 }

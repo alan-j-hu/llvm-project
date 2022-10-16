@@ -601,173 +601,195 @@ value llvm_dibuild_create_struct_type_bytecode(value *argv, int argn) {
   );
 }
 
-LLVMMetadataRef llvm_dibuild_create_member_type_native(
+value llvm_dibuild_create_member_type_native(
     value Builder, LLVMMetadataRef Scope, value Name, LLVMMetadataRef File,
     value LineNumber, value SizeInBits, value AlignInBits, value OffsetInBits,
     value Flags, LLVMMetadataRef Ty) {
-
-  return LLVMDIBuilderCreateMemberType(
+  CAMLparam5(Builder, Scope, Name, File, LineNumber);
+  CAMLxparam5(SizeInBits, AlignInBits, OffsetInBits, Flags, Ty);
+  LLVMMetadataRef Metadata = LLVMDIBuilderCreateMemberType(
       DIBuilder_val(Builder), Metadata_val(Scope), String_val(Name),
       caml_string_length(Name), Metadata_val(File), Int_val(LineNumber),
       (uint64_t)Int_val(SizeInBits), Int_val(AlignInBits),
       (uint64_t)Int_val(OffsetInBits), DIFlags_val(Flags), Ty);
+  CAMLreturn(to_val(Metadata));
 }
 
-LLVMMetadataRef llvm_dibuild_create_member_type_bytecode(value *argv,
-                                                         int argn) {
+value llvm_dibuild_create_member_type_bytecode(value *argv, int argn) {
   return llvm_dibuild_create_member_type_native(
-      argv[0],                  // Builder
-      (LLVMMetadataRef)argv[1], // Scope
-      argv[2],                  // Name
-      (LLVMMetadataRef)argv[3], // File
-      argv[4],                  // LineNumber
-      argv[5],                  // SizeInBits
-      argv[6],                  // AlignInBits
-      argv[7],                  // OffsetInBits
-      argv[8],                  // Flags
-      (LLVMMetadataRef)argv[9]  // Ty
+      argv[0], // Builder
+      argv[1], // Scope
+      argv[2], // Name
+      argv[3], // File
+      argv[4], // LineNumber
+      argv[5], // SizeInBits
+      argv[6], // AlignInBits
+      argv[7], // OffsetInBits
+      argv[8], // Flags
+      argv[9]  // Ty
   );
 }
 
-LLVMMetadataRef llvm_dibuild_create_static_member_type_native(
-    value Builder, LLVMMetadataRef Scope, value Name, LLVMMetadataRef File,
-    value LineNumber, LLVMMetadataRef Type, value Flags,
-    LLVMValueRef ConstantVal, value AlignInBits) {
-
-  return LLVMDIBuilderCreateStaticMemberType(
-      DIBuilder_val(Builder), Scope, String_val(Name), caml_string_length(Name),
-      File, Int_val(LineNumber), Type, DIFlags_val(Flags), ConstantVal,
+value llvm_dibuild_create_static_member_type_native(
+    value Builder, value Scope, value Name, value File,
+    value LineNumber, value Type, value Flags,
+    value ConstantVal, value AlignInBits) {
+  CAMLparam5(Builder, Scope, Name, File, LineNumber);
+  CAMLxparam4(Type, Flags, ConstantVal, AlignInBits);
+  LLVMMetadataRef Metadata = LLVMDIBuilderCreateStaticMemberType(
+      DIBuilder_val(Builder), Metadata_val(Scope), String_val(Name),
+      caml_string_length(Name), Metadata_val(File), Int_val(LineNumber),
+      Metadata_val(Type), DIFlags_val(Flags), Value_val(ConstantVal),
       Int_val(AlignInBits));
+  CAMLparam(to_val(Metadata));
 }
 
-LLVMMetadataRef llvm_dibuild_create_static_member_type_bytecode(value *argv,
-                                                                int argn) {
+value llvm_dibuild_create_static_member_type_bytecode(value *argv, int argn) {
   return llvm_dibuild_create_static_member_type_native(
-      argv[0],                  // Builder
-      (LLVMMetadataRef)argv[1], // Scope
-      argv[2],                  // Name
-      (LLVMMetadataRef)argv[3], // File
-      argv[4],                  // LineNumber
-      (LLVMMetadataRef)argv[5], // Type
-      argv[6],                  // Flags,
-      (LLVMValueRef)argv[7],    // ConstantVal
-      argv[8]                   // AlignInBits
+      argv[0], // Builder
+      argv[1], // Scope
+      argv[2], // Name
+      argv[3], // File
+      argv[4], // LineNumber
+      argv[5], // Type
+      argv[6], // Flags,
+      argv[7], // ConstantVal
+      argv[8]  // AlignInBits
   );
 }
 
-LLVMMetadataRef llvm_dibuild_create_member_pointer_type_native(
-    value Builder, LLVMMetadataRef PointeeType, LLVMMetadataRef ClassType,
-    uint64_t SizeInBits, uint32_t AlignInBits, LLVMDIFlags Flags) {
-
-  return LLVMDIBuilderCreateMemberPointerType(
-      DIBuilder_val(Builder), PointeeType, ClassType,
-      (uint64_t)Int_val(SizeInBits), Int_val(AlignInBits), Flags);
+value llvm_dibuild_create_member_pointer_type_native(
+    value Builder, value PointeeType, value ClassType, value SizeInBits,
+    value AlignInBits, value Flags) {
+  CAMLparam(Builder, PointeeType, ClassType, SizeInBits, AlignInBits);
+  CAMLxparam(Flags);
+  LLVMMetadataRef Metadata = LLVMDIBuilderCreateMemberPointerType(
+      DIBuilder_val(Builder), Metadata_val(PointeeType),
+      Metadata_val(ClassType), (uint64_t)Int_val(SizeInBits),
+      Int_val(AlignInBits), llvm_diflags_get(Flags));
+  CAMLreturn(to_val(Metadata));
 }
 
-LLVMMetadataRef llvm_dibuild_create_member_pointer_type_bytecode(value *argv,
-                                                                 int argn) {
+value llvm_dibuild_create_member_pointer_type_bytecode(value *argv, int argn) {
   return llvm_dibuild_create_member_pointer_type_native(
-      argv[0],                  // Builder
-      (LLVMMetadataRef)argv[1], // PointeeType
-      (LLVMMetadataRef)argv[2], // ClassType
-      argv[3],                  // SizeInBits
-      argv[4],                  // AlignInBits
-      argv[5]                   // Flags
+      argv[0], // Builder
+      argv[1], // PointeeType
+      argv[2], // ClassType
+      argv[3], // SizeInBits
+      argv[4], // AlignInBits
+      argv[5]  // Flags
   );
 }
 
-LLVMMetadataRef llvm_dibuild_create_object_pointer_type(value Builder,
-                                                        LLVMMetadataRef Type) {
-  return LLVMDIBuilderCreateObjectPointerType(DIBuilder_val(Builder), Type);
+value llvm_dibuild_create_object_pointer_type(value Builder, value Type) {
+  CAMLparam2(Builder, Type);
+  LLVMMetadataRef Metadata = LLVMDIBuilderCreateObjectPointerType(
+    DIBuilder_val(Builder), Metadata_val(Type)
+  );
+  CAMLreturn(to_val(Metadata));
 }
 
-LLVMMetadataRef llvm_dibuild_create_qualified_type(value Builder, value Tag,
-                                                   LLVMMetadataRef Type) {
-
-  return LLVMDIBuilderCreateQualifiedType(DIBuilder_val(Builder), Int_val(Tag),
-                                          Type);
+value llvm_dibuild_create_qualified_type(value Builder, value Tag, value Type) {
+  CAMLparam3(Builder, Tag, Type);
+  LLVMMetadataRef Metadata = LLVMDIBuilderCreateQualifiedType(
+    DIBuilder_val(Builder), Int_val(Tag), Metadata_val(Type)
+  );
+  CAMLreturn(to_val(Metadata));
 }
 
-LLVMMetadataRef llvm_dibuild_create_reference_type(value Builder, value Tag,
-                                                   LLVMMetadataRef Type) {
-
-  return LLVMDIBuilderCreateReferenceType(DIBuilder_val(Builder), Int_val(Tag),
-                                          Type);
+value llvm_dibuild_create_reference_type(value Builder, value Tag, value Type) {
+  CAMLparam3(Builder, Tag, Type);
+  LLVMMetadataRef Metadata = LLVMDIBuilderCreateReferenceType(
+    DIBuilder_val(Builder), Int_val(Tag), Metadata_val(Type)
+  );
+  CAMLreturn(to_val(Metadata));
 }
 
-LLVMMetadataRef llvm_dibuild_create_null_ptr_type(value Builder) {
+value llvm_dibuild_create_null_ptr_type(value Builder) {
 
-  return LLVMDIBuilderCreateNullPtrType(DIBuilder_val(Builder));
+  CAMLparam1(Builder);
+  CAMLreturn(to_val(LLVMDIBuilderCreateNullPtrType(DIBuilder_val(Builder))));
 }
 
-LLVMMetadataRef llvm_dibuild_create_typedef_native(
-    value Builder, LLVMMetadataRef Type, value Name, LLVMMetadataRef File,
-    value LineNo, LLVMMetadataRef Scope, value AlignInBits) {
+value llvm_dibuild_create_typedef_native(
+    value Builder, value Type, value Name, value File, value LineNo,
+    value Scope, value AlignInBits) {
 
-  return LLVMDIBuilderCreateTypedef(
-      DIBuilder_val(Builder), Type, String_val(Name), caml_string_length(Name),
-      File, Int_val(LineNo), Scope, Int_val(AlignInBits));
+  CAMLparam5(Builder, Type, Name, File, LineNo);
+  CAMLxparam2(Scope, AlignInBits);
+  LLVMMetadataRef Metadata = LLVMDIBuilderCreateTypedef(
+      DIBuilder_val(Builder), Metadata_val(Type), String_val(Name),
+      caml_string_length(Name), Metadata_val(File), Int_val(LineNo),
+      Metadata_val(Scope), Int_val(AlignInBits));
+  CAMLreturn(to_val(Metadata));
 }
 
-LLVMMetadataRef llvm_dibuild_create_typedef_bytecode(value *argv, int argn) {
+value llvm_dibuild_create_typedef_bytecode(value *argv, int argn) {
 
-  return llvm_dibuild_create_typedef_native(argv[0],                  // Builder
-                                            (LLVMMetadataRef)argv[1], // Type
-                                            argv[2],                  // Name
-                                            (LLVMMetadataRef)argv[3], // File
-                                            argv[4],                  // LineNo
-                                            (LLVMMetadataRef)argv[5], // Scope
-                                            argv[6] // AlignInBits
+  return llvm_dibuild_create_typedef_native(argv[0], // Builder
+                                            argv[1], // Type
+                                            argv[2], // Name
+                                            argv[3], // File
+                                            argv[4], // LineNo
+                                            argv[5], // Scope
+                                            argv[6]  // AlignInBits
   );
 }
 
-LLVMMetadataRef
-llvm_dibuild_create_inheritance_native(value Builder, LLVMMetadataRef Ty,
-                                       LLVMMetadataRef BaseTy, value BaseOffset,
+value
+llvm_dibuild_create_inheritance_native(value Builder, value Ty,
+                                       value BaseTy, value BaseOffset,
                                        value VBPtrOffset, value Flags) {
-
-  return LLVMDIBuilderCreateInheritance(DIBuilder_val(Builder), Ty, BaseTy,
-                                        (uint64_t)Int_val(BaseOffset),
-                                        Int_val(VBPtrOffset), Flags);
+  CAMLparam5(Builder, Ty, BaseTy, BaseOffset, VBPtrOffset);
+  CAMLxparam1(Flags);
+  LLVMMetadataRef Metadata =
+    LLVMDIBuilderCreateInheritance(DIBuilder_val(Builder), Metadata_val(Ty),
+                                   Metadata_val(BaseTy),
+                                   (uint64_t)Int_val(BaseOffset),
+                                   Int_val(VBPtrOffset), DIFlags_val(Flags));
+  CAMLreturn(to_val(Metadata));
 }
 
-LLVMMetadataRef llvm_dibuild_create_inheritance_bytecode(value *argv, int arg) {
+value llvm_dibuild_create_inheritance_bytecode(value *argv, int arg) {
 
   return llvm_dibuild_create_inheritance_native(
-      argv[0],                  // Builder
-      (LLVMMetadataRef)argv[1], // Ty
-      (LLVMMetadataRef)argv[2], // BaseTy
-      argv[3],                  // BaseOffset
-      argv[4],                  // VBPtrOffset
-      argv[5]                   // Flags
+      argv[0], // Builder
+      argv[1], // Ty
+      argv[2], // BaseTy
+      argv[3], // BaseOffset
+      argv[4], // VBPtrOffset
+      argv[5]  // Flags
   );
 }
 
-LLVMMetadataRef llvm_dibuild_create_forward_decl_native(
-    value Builder, value Tag, value Name, LLVMMetadataRef Scope,
-    LLVMMetadataRef File, value Line, value RuntimeLang, value SizeInBits,
+value llvm_dibuild_create_forward_decl_native(
+    value Builder, value Tag, value Name, value Scope,
+    value File, value Line, value RuntimeLang, value SizeInBits,
     value AlignInBits, value UniqueIdentifier) {
-  return LLVMDIBuilderCreateForwardDecl(
+  CAMLparam5(Builder, Tag, Name, Scope, File);
+  CAMLxparam5(Line, RuntimeLang, SizeInBits, AlignInBits, UniqueIdentifier);
+  LLVMMetadataRef Metadata = LLVMDIBuilderCreateForwardDecl(
       DIBuilder_val(Builder), Int_val(Tag), String_val(Name),
-      caml_string_length(Name), Scope, File, Int_val(Line),
-      Int_val(RuntimeLang), (uint64_t)Int_val(SizeInBits), Int_val(AlignInBits),
-      String_val(UniqueIdentifier), caml_string_length(UniqueIdentifier));
+      caml_string_length(Name), Metadata_val(Scope), Metadata_val(File),
+      Int_val(Line), Int_val(RuntimeLang), (uint64_t)Int_val(SizeInBits),
+      Int_val(AlignInBits), String_val(UniqueIdentifier),
+      caml_string_length(UniqueIdentifier));
+  CAMLreturn(to_val(Metadata));
 }
 
-LLVMMetadataRef llvm_dibuild_create_forward_decl_bytecode(value *argv,
-                                                          int arg) {
+value llvm_dibuild_create_forward_decl_bytecode(value *argv, int arg) {
 
   return llvm_dibuild_create_forward_decl_native(
-      argv[0],                  // Builder
-      argv[1],                  // Tag
-      argv[2],                  // Name
-      (LLVMMetadataRef)argv[3], // Scope
-      (LLVMMetadataRef)argv[4], // File
-      argv[5],                  // Line
-      argv[6],                  // RuntimeLang
-      argv[7],                  // SizeInBits
-      argv[8],                  // AlignInBits
-      argv[9]                   // UniqueIdentifier
+      argv[0], // Builder
+      argv[1], // Tag
+      argv[2], // Name
+      argv[3], // Scope
+      argv[4], // File
+      argv[5], // Line
+      argv[6], // RuntimeLang
+      argv[7], // SizeInBits
+      argv[8], // AlignInBits
+      argv[9]  // UniqueIdentifier
   );
 }
 
