@@ -793,208 +793,246 @@ value llvm_dibuild_create_forward_decl_bytecode(value *argv, int arg) {
   );
 }
 
-LLVMMetadataRef llvm_dibuild_create_replaceable_composite_type_native(
-    value Builder, value Tag, value Name, LLVMMetadataRef Scope,
-    LLVMMetadataRef File, value Line, value RuntimeLang, value SizeInBits,
+value llvm_dibuild_create_replaceable_composite_type_native(
+    value Builder, value Tag, value Name, value Scope,
+    value File, value Line, value RuntimeLang, value SizeInBits,
     value AlignInBits, value Flags, value UniqueIdentifier) {
-
-  return LLVMDIBuilderCreateReplaceableCompositeType(
+  CAMLparam5(Builder, Tag, Name, Scope, File);
+  CAMLxparam5(Line, RuntimeLang, SizeInBits, AlignInBits, Flags);
+  CAMLxparam1(UniqueIdentifier);
+  LLVMMetadataRef Metadata = LLVMDIBuilderCreateReplaceableCompositeType(
       DIBuilder_val(Builder), Int_val(Tag), String_val(Name),
-      caml_string_length(Name), Scope, File, Int_val(Line),
-      Int_val(RuntimeLang), (uint64_t)Int_val(SizeInBits), Int_val(AlignInBits),
-      DIFlags_val(Flags), String_val(UniqueIdentifier),
+      caml_string_length(Name), Metadata_val(Scope), Metadata_val(File),
+      Int_val(Line), Int_val(RuntimeLang), (uint64_t)Int_val(SizeInBits),
+      Int_val(AlignInBits), DIFlags_val(Flags), String_val(UniqueIdentifier),
       caml_string_length(UniqueIdentifier));
+  CAMLreturn(to_val(Metadata));
 }
 
-LLVMMetadataRef
+value
 llvm_dibuild_create_replaceable_composite_type_bytecode(value *argv, int arg) {
 
   return llvm_dibuild_create_replaceable_composite_type_native(
-      argv[0],                  // Builder
-      argv[1],                  // Tag
-      argv[2],                  // Name
-      (LLVMMetadataRef)argv[3], // Scope
-      (LLVMMetadataRef)argv[4], // File
-      argv[5],                  // Line
-      argv[6],                  // RuntimeLang
-      argv[7],                  // SizeInBits
-      argv[8],                  // AlignInBits
-      argv[9],                  // Flags
-      argv[10]                  // UniqueIdentifier
+      argv[0], // Builder
+      argv[1], // Tag
+      argv[2], // Name
+      argv[3], // Scope
+      argv[4], // File
+      argv[5], // Line
+      argv[6], // RuntimeLang
+      argv[7], // SizeInBits
+      argv[8], // AlignInBits
+      argv[9], // Flags
+      argv[10] // UniqueIdentifier
   );
 }
 
-LLVMMetadataRef llvm_dibuild_create_bit_field_member_type_native(
-    value Builder, LLVMMetadataRef Scope, value Name, LLVMMetadataRef File,
+value llvm_dibuild_create_bit_field_member_type_native(
+    value Builder, value Scope, value Name, value File,
     value LineNum, value SizeInBits, value OffsetInBits,
-    value StorageOffsetInBits, value Flags, LLVMMetadataRef Ty) {
-
-  return LLVMDIBuilderCreateBitFieldMemberType(
-      DIBuilder_val(Builder), Scope, String_val(Name), caml_string_length(Name),
-      File, Int_val(LineNum), (uint64_t)Int_val(SizeInBits),
-      (uint64_t)Int_val(OffsetInBits), (uint64_t)Int_val(StorageOffsetInBits),
-      DIFlags_val(Flags), Ty);
+    value StorageOffsetInBits, value Flags, value Ty) {
+  CAMLparam5(Builder, Scope, Name, File, LineNum);
+  CAMLxparam5(SizeInBits, OffsetInBits, StorageOffsetInBits, Flags, Ty);
+  LLVMMetadataRef Metadata = LLVMDIBuilderCreateBitFieldMemberType(
+      DIBuilder_val(Builder), Metadata_val(Scope), String_val(Name),
+      caml_string_length(Name), Metadata_val(File), Int_val(LineNum),
+      (uint64_t)Int_val(SizeInBits), (uint64_t)Int_val(OffsetInBits),
+      (uint64_t)Int_val(StorageOffsetInBits), DIFlags_val(Flags),
+      Metadata_val(Ty));
+  CAMLreturn(to_val(Metadata));
 }
 
-LLVMMetadataRef llvm_dibuild_create_bit_field_member_type_bytecode(value *argv,
-                                                                   int arg) {
+value llvm_dibuild_create_bit_field_member_type_bytecode(value *argv, int arg) {
 
   return llvm_dibuild_create_bit_field_member_type_native(
-      argv[0],                  // Builder
-      (LLVMMetadataRef)argv[1], // Scope
-      argv[2],                  // Name
-      (LLVMMetadataRef)argv[3], // File
-      argv[4],                  // LineNum
-      argv[5],                  // SizeInBits
-      argv[6],                  // OffsetInBits
-      argv[7],                  // StorageOffsetInBits
-      argv[8],                  // Flags
-      (LLVMMetadataRef)argv[9]  // Ty
+      argv[0], // Builder
+      argv[1], // Scope
+      argv[2], // Name
+      argv[3], // File
+      argv[4], // LineNum
+      argv[5], // SizeInBits
+      argv[6], // OffsetInBits
+      argv[7], // StorageOffsetInBits
+      argv[8], // Flags
+      argv[9]  // Ty
   );
 }
 
-LLVMMetadataRef llvm_dibuild_create_class_type_native(
-    value Builder, LLVMMetadataRef Scope, value Name, LLVMMetadataRef File,
+value llvm_dibuild_create_class_type_native(
+    value Builder, value Scope, value Name, value File,
     value LineNumber, value SizeInBits, value AlignInBits, value OffsetInBits,
     value Flags, LLVMMetadataRef DerivedFrom, value Elements,
-    LLVMMetadataRef VTableHolder, LLVMMetadataRef TemplateParamsNode,
+    LLVMMetadataRef value, value TemplateParamsNode,
     value UniqueIdentifier) {
-
-  return LLVMDIBuilderCreateClassType(
-      DIBuilder_val(Builder), Scope, String_val(Name), caml_string_length(Name),
-      File, Int_val(LineNumber), (uint64_t)Int_val(SizeInBits),
-      Int_val(AlignInBits), (uint64_t)Int_val(OffsetInBits), DIFlags_val(Flags),
-      DerivedFrom, (LLVMMetadataRef *)Op_val(Elements), Wosize_val(Elements),
-      VTableHolder, TemplateParamsNode, String_val(UniqueIdentifier),
-      caml_string_length(UniqueIdentifier));
+  CAMLparam5(Builder, Scope, Name, File, LineNumber);
+  CAMLxparam5(SizeInBits, AlignInBits, OffsetInBits, Flags, DerivedFrom);
+  CAMLxparam4(Elements, VTableHolder, TemplateParamsNode, UniqueIdentifier);
+  LLVMMetadataRef* Temp = alloc_temp(Elements);
+  LLVMMetadataRef Metadata = LLVMDIBuilderCreateClassType(
+      DIBuilder_val(Builder), Metadata_val(Scope), String_val(Name),
+      caml_string_length(Name), Metadata_val(File), Int_val(LineNumber),
+      (uint64_t)Int_val(SizeInBits), Int_val(AlignInBits),
+      (uint64_t)Int_val(OffsetInBits), DIFlags_val(Flags),
+      Metadata_val(DerivedFrom), Temp, Wosize_val(Elements),
+      Metadata_val(VTableHolder), Metadata_val(TemplateParamsNode),
+      String_val(UniqueIdentifier), caml_string_length(UniqueIdentifier));
+  free(Temp);
+  CAMLreturn(to_val(Metadata));
 }
 
-LLVMMetadataRef llvm_dibuild_create_class_type_bytecode(value *argv, int arg) {
+value llvm_dibuild_create_class_type_bytecode(value *argv, int arg) {
 
   return llvm_dibuild_create_class_type_native(
-      argv[0],                   // Builder
-      (LLVMMetadataRef)argv[1],  // Scope
-      argv[2],                   // Name
-      (LLVMMetadataRef)argv[3],  // File
-      argv[4],                   // LineNumber
-      argv[5],                   // SizeInBits
-      argv[6],                   // AlignInBits
-      argv[7],                   // OffsetInBits
-      argv[8],                   // Flags
-      (LLVMMetadataRef)argv[9],  // DerivedFrom
-      argv[10],                  // Elements
-      (LLVMMetadataRef)argv[11], // VTableHolder
-      (LLVMMetadataRef)argv[12], // TemplateParamsNode
-      argv[13]                   // UniqueIdentifier
+      argv[0],  // Builder
+      argv[1],  // Scope
+      argv[2],  // Name
+      argv[3],  // File
+      argv[4],  // LineNumber
+      argv[5],  // SizeInBits
+      argv[6],  // AlignInBits
+      argv[7],  // OffsetInBits
+      argv[8],  // Flags
+      argv[9],  // DerivedFrom
+      argv[10], // Elements
+      argv[11], // VTableHolder
+      argv[12], // TemplateParamsNode
+      argv[13]  // UniqueIdentifier
   );
 }
 
-LLVMMetadataRef llvm_dibuild_create_artificial_type(value Builder,
-                                                    LLVMMetadataRef Type) {
-  return LLVMDIBuilderCreateArtificialType(DIBuilder_val(Builder), Type);
+value llvm_dibuild_create_artificial_type(value Builder, value Type) {
+  CAMLparam2(Builder, Type);
+  LLVMMetadataRef Metadata = LLVMDIBuilderCreateArtificialType(
+    DIBuilder_val(Builder),
+    Metadata_val(Type));
+  CAMLreturn(to_val(Metadata));
 }
 
-value llvm_di_type_get_name(LLVMMetadataRef DType) {
+value llvm_di_type_get_name(value DType) {
+  CAMLparam1(DType);
   size_t Len;
-  const char *Name = LLVMDITypeGetName(DType, &Len);
-  return cstr_to_string(Name, Len);
+  const char *Name = LLVMDITypeGetName(Metadata_val(DType), &Len);
+  CAMLreturn(cstr_to_string(Name, Len));
 }
 
-value llvm_di_type_get_size_in_bits(LLVMMetadataRef DType) {
-  uint64_t Size = LLVMDITypeGetSizeInBits(DType);
-  return Val_int((int)Size);
+value llvm_di_type_get_size_in_bits(value DType) {
+  CAMLparam1(DType);
+  uint64_t Size = LLVMDITypeGetSizeInBits(Metadata_val(DType));
+  CAMLreturn(Val_int((int)Size));
 }
 
-value llvm_di_type_get_offset_in_bits(LLVMMetadataRef DType) {
-  uint64_t Size = LLVMDITypeGetOffsetInBits(DType);
-  return Val_int((int)Size);
+value llvm_di_type_get_offset_in_bits(value DType) {
+  CAMLparam1(DType);
+  uint64_t Size = LLVMDITypeGetOffsetInBits(Metadata_val(DType));
+  CAMLreturn(Val_int((int)Size));
 }
 
-value llvm_di_type_get_align_in_bits(LLVMMetadataRef DType) {
-  uint32_t Size = LLVMDITypeGetAlignInBits(DType);
-  return Val_int(Size);
+value llvm_di_type_get_align_in_bits(value DType) {
+  CAMLparam1(DType);
+  uint32_t Size = LLVMDITypeGetAlignInBits(Metadata_val(DType));
+  CAMLreturn(Val_int(Size));
 }
 
-value llvm_di_type_get_line(LLVMMetadataRef DType) {
-  unsigned Line = LLVMDITypeGetLine(DType);
-  return Val_int(Line);
+value llvm_di_type_get_line(value DType) {
+  CAMLparam1(DType);
+  unsigned Line = LLVMDITypeGetLine(Metadata_val(DType));
+  CAMLreturn(Val_int(Line));
 }
 
-value llvm_di_type_get_flags(LLVMMetadataRef DType) {
-  LLVMDIFlags Flags = LLVMDITypeGetLine(DType);
-  return alloc_diflags(Flags);
+value llvm_di_type_get_flags(value DType) {
+  CAMLparam1(DType);
+  LLVMDIFlags Flags = LLVMDITypeGetLine(Metadata_val(DType));
+  CAMLreturn(alloc_diflags(Flags));
 }
 
-value llvm_get_subprogram(LLVMValueRef Func) {
-  return (ptr_to_option(LLVMGetSubprogram(Func)));
+value llvm_get_subprogram(value Func) {
+  CAMLparam1(Func);
+  CAMLreturn(ptr_to_option(LLVMGetSubprogram(Value_val(Func))));
 }
 
-value llvm_set_subprogram(LLVMValueRef Func, LLVMMetadataRef SP) {
-  LLVMSetSubprogram(Func, SP);
-  return Val_unit;
+value llvm_set_subprogram(value Func, value SP) {
+  CAMLparam2(Func, SP);
+  LLVMSetSubprogram(Value_val(Func), Metadata_val(SP));
+  CAMLreturn(Val_unit);
 }
 
-value llvm_di_subprogram_get_line(LLVMMetadataRef Subprogram) {
-  return Val_int(LLVMDISubprogramGetLine(Subprogram));
+value llvm_di_subprogram_get_line(value Subprogram) {
+  CAMLparam1(Subprogram);
+  CAMLreturn(Val_int(LLVMDISubprogramGetLine(Metadata_val(Subprogram))));
 }
 
-value llvm_instr_get_debug_loc(LLVMValueRef Inst) {
-  return (ptr_to_option(LLVMInstructionGetDebugLoc(Inst)));
+value llvm_instr_get_debug_loc(value Inst) {
+  CAMLparam1(Inst);
+  CAMLreturn(ptr_to_option(LLVMInstructionGetDebugLoc(Value_val(Inst))));
 }
 
-value llvm_instr_set_debug_loc(LLVMValueRef Inst, LLVMMetadataRef Loc) {
-  LLVMInstructionSetDebugLoc(Inst, Loc);
-  return Val_unit;
+value llvm_instr_set_debug_loc(value Inst, value Loc) {
+  CAMLparam2(Inst, Loc);
+  LLVMInstructionSetDebugLoc(Value_val(Inst), Metadata_val(Loc));
+  CAMLreturn(Val_unit);
 }
 
-LLVMMetadataRef llvm_dibuild_create_constant_value_expression(value Builder,
-                                                              value Value) {
-  return LLVMDIBuilderCreateConstantValueExpression(DIBuilder_val(Builder),
-                                                    (uint64_t)Int_val(Value));
+value llvm_dibuild_create_constant_value_expression(value Builder, value Value) {
+  CAMLparam2(Builder, Value);
+  LLVMMetadataRef Metadata =
+    LLVMDIBuilderCreateConstantValueExpression(DIBuilder_val(Builder),
+                                               (uint64_t)Int_val(Value));
+  CAMLreturn(to_val(Metadata));
 }
 
-LLVMMetadataRef llvm_dibuild_create_global_variable_expression_native(
-    value Builder, LLVMMetadataRef Scope, value Name, value Linkage,
-    LLVMMetadataRef File, value Line, LLVMMetadataRef Ty, value LocalToUnit,
-    LLVMMetadataRef Expr, LLVMMetadataRef Decl, value AlignInBits) {
-  return LLVMDIBuilderCreateGlobalVariableExpression(
-      DIBuilder_val(Builder), Scope, String_val(Name), caml_string_length(Name),
-      String_val(Linkage), caml_string_length(Linkage), File, Int_val(Line), Ty,
-      Bool_val(LocalToUnit), Expr, Decl, Int_val(AlignInBits));
+value llvm_dibuild_create_global_variable_expression_native(
+    value Builder, value Scope, value Name, value Linkage,
+    value File, value Line, value Ty, value LocalToUnit,
+    value Expr, value Decl, value AlignInBits) {
+  CAMLparam5(Builder, Scope, Name, Linkage, File);
+  CAMLxparam5(Line, Ty, LocalToUnit, Expr, Decl);
+  CAMLxparam1(AlignInBits);
+  LLVMMetadataRef Metadata = LLVMDIBuilderCreateGlobalVariableExpression(
+      DIBuilder_val(Builder), Metadata_val(Scope), String_val(Name),
+      caml_string_length(Name), String_val(Linkage),
+      caml_string_length(Linkage), Metadata_val(File), Int_val(Line),
+      Metadata_val(Ty), Bool_val(LocalToUnit), Metadata_val(Expr),
+      Metadata_val(Decl), Int_val(AlignInBits));
+  CAMLreturn(to_val(Metadata));
 }
 
-LLVMMetadataRef
+value
 llvm_dibuild_create_global_variable_expression_bytecode(value *argv, int arg) {
 
   return llvm_dibuild_create_global_variable_expression_native(
-      argv[0],                  // Builder
-      (LLVMMetadataRef)argv[1], // Scope
-      argv[2],                  // Name
-      argv[3],                  // Linkage
-      (LLVMMetadataRef)argv[4], // File
-      argv[5],                  // Line
-      (LLVMMetadataRef)argv[6], // Ty
-      argv[7],                  // LocalToUnit
-      (LLVMMetadataRef)argv[8], // Expr
-      (LLVMMetadataRef)argv[9], // Decl
-      argv[10]                  // AlignInBits
+      argv[0], // Builder
+      argv[1], // Scope
+      argv[2], // Name
+      argv[3], // Linkage
+      argv[4], // File
+      argv[5], // Line
+      argv[6], // Ty
+      argv[7], // LocalToUnit
+      argv[8], // Expr
+      argv[9], // Decl
+      argv[10] // AlignInBits
   );
 }
 
-value llvm_di_global_variable_expression_get_variable(LLVMMetadataRef GVE) {
-  return (ptr_to_option(LLVMDIGlobalVariableExpressionGetVariable(GVE)));
+value llvm_di_global_variable_expression_get_variable(value GVE) {
+  CAMLparam1(GVE);
+  CAMLreturn(ptr_to_option(
+    LLVMDIGlobalVariableExpressionGetVariable(Metadata_val(GVE))));
 }
 
-value llvm_di_variable_get_line(LLVMMetadataRef Variable) {
-  return Val_int(LLVMDIVariableGetLine(Variable));
+value llvm_di_variable_get_line(value Variable) {
+  CAMLparam1(Variable);
+  CAMLreturn(Val_int(LLVMDIVariableGetLine(Metadata_val(Variable))));
 }
 
 value llvm_di_variable_get_file(LLVMMetadataRef Variable) {
-  return (ptr_to_option(LLVMDIVariableGetFile(Variable)));
+  CAMLparam1(Variable);
+  CAMLreturn(ptr_to_option(LLVMDIVariableGetFile(Metadata_val(Variable))));
 }
 
 value llvm_get_metadata_kind(LLVMMetadataRef Metadata) {
-  return Val_int(LLVMGetMetadataKind(Metadata));
+  CAMLparam1(Metadata);
+  CAMLreturn(Val_int(LLVMGetMetadataKind(Metadata_val(Metadata))));
 }
 
 value llvm_dibuild_create_auto_variable_native(
@@ -1025,71 +1063,82 @@ value llvm_dibuild_create_auto_variable_bytecode(value *argv, int arg) {
   );
 }
 
-LLVMMetadataRef llvm_dibuild_create_parameter_variable_native(
-    value Builder, LLVMMetadataRef Scope, value Name, unsigned ArgNo,
-    LLVMMetadataRef File, value Line, LLVMMetadataRef Ty, value AlwaysPreserve,
+value llvm_dibuild_create_parameter_variable_native(
+    value Builder, value Scope, value Name, value ArgNo,
+    value File, value Line, value Ty, value AlwaysPreserve,
     value Flags) {
-  return LLVMDIBuilderCreateParameterVariable(
-      DIBuilder_val(Builder), Scope, String_val(Name), caml_string_length(Name),
-      ArgNo, File, Int_val(Line), Ty, Bool_val(AlwaysPreserve),
+  CAMLparam5(Builder, Scope, Name, ArgNo, File);
+  CAMLxparam4(Line, Ty, AlwaysPreserve, Flags);
+  LLVMMetadataRef Metadata = LLVMDIBuilderCreateParameterVariable(
+      DIBuilder_val(Builder), Metadata_val(Scope), String_val(Name),
+      caml_string_length(Name), (unsigned) Int_val(ArgNo), Metadata_val(File),
+      Int_val(Line), Metadata_val(Ty), Bool_val(AlwaysPreserve),
       DIFlags_val(Flags));
+  CAMLreturn(to_val(Metadata));
 }
 
-LLVMMetadataRef llvm_dibuild_create_parameter_variable_bytecode(value *argv,
-                                                                int arg) {
-
+value llvm_dibuild_create_parameter_variable_bytecode(value *argv, int arg) {
   return llvm_dibuild_create_parameter_variable_native(
-      argv[0],                  // Builder
-      (LLVMMetadataRef)argv[1], // Scope
-      argv[2],                  // Name
-      argv[3],                  // ArgNo
-      (LLVMMetadataRef)argv[4], // File
-      argv[5],                  // Line
-      (LLVMMetadataRef)argv[6], // Ty
-      argv[7],                  // AlwaysPreserve
-      argv[8]                   // Flags
+      argv[0], // Builder
+      argv[1], // Scope
+      argv[2], // Name
+      argv[3], // ArgNo
+      argv[4], // File
+      argv[5], // Line
+      argv[6], // Ty
+      argv[7], // AlwaysPreserve
+      argv[8]  // Flags
   );
 }
 
-LLVMValueRef llvm_dibuild_insert_declare_before_native(
-    value Builder, LLVMValueRef Storage, LLVMMetadataRef VarInfo,
-    LLVMMetadataRef Expr, LLVMMetadataRef DebugLoc, LLVMValueRef Instr) {
-  return LLVMDIBuilderInsertDeclareBefore(DIBuilder_val(Builder), Storage,
-                                          VarInfo, Expr, DebugLoc, Instr);
+value llvm_dibuild_insert_declare_before_native(
+    value Builder, value Storage, value VarInfo,
+    value Expr, value DebugLoc, value Instr) {
+  CAMLparam5(Builder, Storage, VarInfo, Expr, DebugLog);
+  CAMLxparam1(Instr);
+  LLVMValueRef Value = LLVMDIBuilderInsertDeclareBefore(
+    DIBuilder_val(Builder), Value_val(Storage), Metadata_val(VarInfo),
+    Metadata_val(Expr), Metadata_val(DebugLoc), Value_val(Instr));
+  CAMLreturn(to_val(Value));
 }
 
-LLVMValueRef llvm_dibuild_insert_declare_before_bytecode(value *argv, int arg) {
+value llvm_dibuild_insert_declare_before_bytecode(value *argv, int arg) {
 
   return llvm_dibuild_insert_declare_before_native(
-      argv[0],                  // Builder
-      (LLVMValueRef)argv[1],    // Storage
-      (LLVMMetadataRef)argv[2], // VarInfo
-      (LLVMMetadataRef)argv[3], // Expr
-      (LLVMMetadataRef)argv[4], // DebugLoc
-      (LLVMValueRef)argv[5]     // Instr
+      argv[0], // Builder
+      argv[1], // Storage
+      argv[2], // VarInfo
+      argv[3], // Expr
+      argv[4], // DebugLoc
+      argv[5]  // Instr
   );
 }
 
-LLVMValueRef llvm_dibuild_insert_declare_at_end_native(
-    value Builder, LLVMValueRef Storage, LLVMMetadataRef VarInfo,
-    LLVMMetadataRef Expr, LLVMMetadataRef DebugLoc, LLVMBasicBlockRef Block) {
-  return LLVMDIBuilderInsertDeclareAtEnd(DIBuilder_val(Builder), Storage,
-                                         VarInfo, Expr, DebugLoc, Block);
+value llvm_dibuild_insert_declare_at_end_native(
+    value Builder, value Storage, value VarInfo,
+    value Expr, value DebugLoc, value Block) {
+  CAMLparam5(Builder, Storage, VarInfo, Expr, DebugLoc);
+  CAMLxparam1(Block);
+  LLVMValueRef Value = LLVMDIBuilderInsertDeclareAtEnd(
+    DIBuilder_val(Builder), Value_val(Storage),
+    Metadata_val(VarInfo), Metadata_val(Expr), Metadata_val(DebugLoc),
+    BasicBlock_val(Block));
+  CAMLreturn(to_val(Value));
 }
 
-LLVMValueRef llvm_dibuild_insert_declare_at_end_bytecode(value *argv, int arg) {
-
+value llvm_dibuild_insert_declare_at_end_bytecode(value *argv, int arg) {
   return llvm_dibuild_insert_declare_at_end_native(
-      argv[0],                   // Builder
-      (LLVMValueRef)argv[1],     // Storage
-      (LLVMMetadataRef)argv[2],  // VarInfo
-      (LLVMMetadataRef)argv[3],  // Expr
-      (LLVMMetadataRef)argv[4],  // DebugLoc
-      (LLVMBasicBlockRef)argv[5] // Block
+      argv[0], // Builder
+      argv[1], // Storage
+      argv[2], // VarInfo
+      argv[3], // Expr
+      argv[4], // DebugLoc
+      argv[5]  // Block
   );
 }
 
-LLVMMetadataRef llvm_dibuild_expression(value Builder, value Addr) {
-  return LLVMDIBuilderCreateExpression(
-      DIBuilder_val(Builder), (uint64_t *)Op_val(Addr), Wosize_val(Addr));
+value llvm_dibuild_expression(value Builder, value Addr) {
+  CAMLparam2(Builder, Addr);
+  CAMLreturn(to_val(LLVMDIBuilderCreateExpression(
+      DIBuilder_val(Builder), (uint64_t *)Op_val(Addr), Wosize_val(Addr))));
 }
