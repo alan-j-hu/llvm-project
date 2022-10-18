@@ -25,6 +25,9 @@
 #include "caml/fail.h"
 #include "caml/memory.h"
 #include "caml/callback.h"
+#include "llvm_ocaml.h"
+
+#define ExecutionEngine_val(v) ((LLVMExecutionEngineRef) from_val(v))
 
 void llvm_raise(value Prototype, char *Message);
 
@@ -38,7 +41,8 @@ value llvm_ee_initialize(value Unit) {
 }
 
 /* llmodule -> llcompileroption -> ExecutionEngine.t */
-LLVMExecutionEngineRef llvm_ee_create(value OptRecordOpt, LLVMModuleRef M) {
+value llvm_ee_create(value OptRecordOpt, value M) {
+  CAMLparam2(OptRecordOpt, M);
   value OptRecord;
   LLVMExecutionEngineRef MCJIT;
   char *Error;
@@ -54,73 +58,86 @@ LLVMExecutionEngineRef llvm_ee_create(value OptRecordOpt, LLVMModuleRef M) {
     Options.MCJMM = NULL;
   }
 
-  if (LLVMCreateMCJITCompilerForModule(&MCJIT, M, &Options, sizeof(Options),
-                                       &Error))
+  if (LLVMCreateMCJITCompilerForModule(&MCJIT, Module_val(M), &Options,
+                                       sizeof(Options), &Error))
     llvm_raise(*caml_named_value("Llvm_executionengine.Error"), Error);
-  return MCJIT;
+  CAMLreturn(to_val(MCJIT));
 }
 
 /* ExecutionEngine.t -> unit */
-value llvm_ee_dispose(LLVMExecutionEngineRef EE) {
-  LLVMDisposeExecutionEngine(EE);
-  return Val_unit;
+value llvm_ee_dispose(value EE) {
+  CAMLparam1(EE);
+  LLVMDisposeExecutionEngine(ExecutionEngine_val(EE));
+  CAMLreturn(Val_unit);
 }
 
 /* llmodule -> ExecutionEngine.t -> unit */
-value llvm_ee_add_module(LLVMModuleRef M, LLVMExecutionEngineRef EE) {
-  LLVMAddModule(EE, M);
-  return Val_unit;
+value llvm_ee_add_module(value M, value EE) {
+  CAMLparam2(M, EE);
+  LLVMAddModule(ExecutionEngine_val(EE), Module_val(M));
+  CAMLreturn(Val_unit);
 }
 
 /* llmodule -> ExecutionEngine.t -> llmodule */
-value llvm_ee_remove_module(LLVMModuleRef M, LLVMExecutionEngineRef EE) {
+value llvm_ee_remove_module(value M, value EE) {
+  CAMLparam2(M, EE);
   LLVMModuleRef RemovedModule;
   char *Error;
-  if (LLVMRemoveModule(EE, M, &RemovedModule, &Error))
+  if (LLVMRemoveModule(ExecutionEngine_val(EE), Module_val(M), &RemovedModule,
+                       &Error))
     llvm_raise(*caml_named_value("Llvm_executionengine.Error"), Error);
-  return Val_unit;
+  CAMLreturn(Val_unit);
 }
 
 /* ExecutionEngine.t -> unit */
-value llvm_ee_run_static_ctors(LLVMExecutionEngineRef EE) {
-  LLVMRunStaticConstructors(EE);
-  return Val_unit;
+value llvm_ee_run_static_ctors(value EE) {
+  CAMLparam1(EE);
+  LLVMRunStaticConstructors(ExecutionEngine_val(EE));
+  CAMLreturn(Val_unit);
 }
 
 /* ExecutionEngine.t -> unit */
-value llvm_ee_run_static_dtors(LLVMExecutionEngineRef EE) {
-  LLVMRunStaticDestructors(EE);
-  return Val_unit;
+value llvm_ee_run_static_dtors(value EE) {
+  CAMLparam1(EE);
+  LLVMRunStaticDestructors(ExecutionEngine_val(EE));
+  CAMLreturn(Val_unit);
 }
 
 extern value llvm_alloc_data_layout(LLVMTargetDataRef TargetData);
 
 /* ExecutionEngine.t -> Llvm_target.DataLayout.t */
-value llvm_ee_get_data_layout(LLVMExecutionEngineRef EE) {
+value llvm_ee_get_data_layout(value EE) {
+  CAMLparam1(EE);
   value DataLayout;
   LLVMTargetDataRef OrigDataLayout;
   char *TargetDataCStr;
 
-  OrigDataLayout = LLVMGetExecutionEngineTargetData(EE);
+  OrigDataLayout = LLVMGetExecutionEngineTargetData(ExecutionEngine_val(EE));
   TargetDataCStr = LLVMCopyStringRepOfTargetData(OrigDataLayout);
   DataLayout = llvm_alloc_data_layout(LLVMCreateTargetData(TargetDataCStr));
   LLVMDisposeMessage(TargetDataCStr);
 
-  return DataLayout;
+  CAMLreturn(DataLayout);
 }
 
 /* Llvm.llvalue -> int64 -> llexecutionengine -> unit */
-value llvm_ee_add_global_mapping(LLVMValueRef Global, value Ptr,
-                                 LLVMExecutionEngineRef EE) {
-  LLVMAddGlobalMapping(EE, Global, (void *)(Int64_val(Ptr)));
-  return Val_unit;
+value llvm_ee_add_global_mapping(value Global, value Ptr, value EE) {
+  CAMLparam3(Global, Ptr, EE);
+  LLVMAddGlobalMapping(ExecutionEngine_val(EE), Value_val(Global),
+                       (void *)(Int64_val(Ptr)));
+  CAMLreturn(Val_unit);
 }
 
-value llvm_ee_get_global_value_address(value Name, LLVMExecutionEngineRef EE) {
-  return caml_copy_int64(
-      (int64_t)LLVMGetGlobalValueAddress(EE, String_val(Name)));
+value llvm_ee_get_global_value_address(value Name, value EE) {
+  CAMLparam2(Name, EE);
+  CAMLreturn(caml_copy_int64(
+      (int64_t)LLVMGetGlobalValueAddress(ExecutionEngine_val(EE),
+                                         String_val(Name))));
 }
 
-value llvm_ee_get_function_address(value Name, LLVMExecutionEngineRef EE) {
-  return caml_copy_int64((int64_t)LLVMGetFunctionAddress(EE, String_val(Name)));
+value llvm_ee_get_function_address(value Name, value EE) {
+  CAMLparam2(Name, EE);
+  CAMLreturn(
+      caml_copy_int64((int64_t)LLVMGetFunctionAddress(ExecutionEngine_val(EE),
+                                                      String_val(Name))));
 }

@@ -21,14 +21,16 @@
 #include "caml/memory.h"
 #include "caml/fail.h"
 #include "caml/callback.h"
+#include "llvm_ocaml.h"
 
 void llvm_raise(value Prototype, char *Message);
 
 /* llmodule -> llmodule -> unit */
 value llvm_link_modules(LLVMModuleRef Dst, LLVMModuleRef Src) {
-  if (LLVMLinkModules2(Dst, Src))
+  CAMLparam2(Dst, Src);
+  if (LLVMLinkModules2(Module_val(Dst), Module_val(Src)))
     llvm_raise(*caml_named_value("Llvm_linker.Error"),
                LLVMCreateMessage("Linking failed"));
 
-  return Val_unit;
+  CAMLreturn(Val_unit);
 }
