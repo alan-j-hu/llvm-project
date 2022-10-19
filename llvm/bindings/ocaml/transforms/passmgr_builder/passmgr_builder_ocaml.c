@@ -10,15 +10,14 @@
 |* This file glues LLVM's OCaml interface to its C interface. These functions *|
 |* are by and large transparent wrappers to the corresponding C functions.    *|
 |*                                                                            *|
-|* Note that these functions intentionally take liberties with the CAMLparamX *|
-|* macros, since most of the parameters are not GC heap objects.              *|
-|*                                                                            *|
 \*===----------------------------------------------------------------------===*/
 
-#include "llvm-c/Transforms/PassManagerBuilder.h"
-#include "caml/mlvalues.h"
 #include "caml/custom.h"
+#include "caml/memory.h"
 #include "caml/misc.h"
+#include "caml/mlvalues.h"
+#include "llvm_ocaml.h"
+#include "llvm-c/Transforms/PassManagerBuilder.h"
 
 #define PMBuilder_val(v) (*(LLVMPassManagerBuilderRef *)(Data_custom_val(v)))
 
@@ -33,60 +32,68 @@ static struct custom_operations pmbuilder_ops = {
     custom_compare_ext_default};
 
 static value alloc_pmbuilder(LLVMPassManagerBuilderRef Ref) {
-  value Val =
-      alloc_custom(&pmbuilder_ops, sizeof(LLVMPassManagerBuilderRef), 0, 1);
+  value Val = caml_alloc_custom(&pmbuilder_ops,
+                                sizeof(LLVMPassManagerBuilderRef), 0, 1);
   PMBuilder_val(Val) = Ref;
   return Val;
 }
 
 /* t -> unit */
 value llvm_pmbuilder_create(value Unit) {
-  return alloc_pmbuilder(LLVMPassManagerBuilderCreate());
+  CAMLparam1(Unit);
+  CAMLreturn(alloc_pmbuilder(LLVMPassManagerBuilderCreate()));
 }
 
 /* int -> t -> unit */
 value llvm_pmbuilder_set_opt_level(value OptLevel, value PMB) {
+  CAMLparam2(OptLevel, PMB);
   LLVMPassManagerBuilderSetOptLevel(PMBuilder_val(PMB), Int_val(OptLevel));
-  return Val_unit;
+  CAMLreturn(Val_unit);
 }
 
 /* int -> t -> unit */
 value llvm_pmbuilder_set_size_level(value SizeLevel, value PMB) {
+  CAMLparam2(SizeLevel, PMB);
   LLVMPassManagerBuilderSetSizeLevel(PMBuilder_val(PMB), Int_val(SizeLevel));
-  return Val_unit;
+  CAMLreturn(Val_unit);
 }
 
 /* int -> t -> unit */
 value llvm_pmbuilder_use_inliner_with_threshold(value Threshold, value PMB) {
+  CAMLparam2(Threshold, PMB);
   LLVMPassManagerBuilderSetOptLevel(PMBuilder_val(PMB), Int_val(Threshold));
-  return Val_unit;
+  CAMLreturn(Val_unit);
 }
 
 /* bool -> t -> unit */
 value llvm_pmbuilder_set_disable_unit_at_a_time(value DisableUnitAtATime,
                                                 value PMB) {
+  CAMLparam2(DisableUnitAtATime, PMB);
   LLVMPassManagerBuilderSetDisableUnitAtATime(PMBuilder_val(PMB),
                                               Bool_val(DisableUnitAtATime));
-  return Val_unit;
+  CAMLreturn(Val_unit);
 }
 
 /* bool -> t -> unit */
 value llvm_pmbuilder_set_disable_unroll_loops(value DisableUnroll, value PMB) {
+  CAMLparam2(DisableUnroll, PMB);
   LLVMPassManagerBuilderSetDisableUnrollLoops(PMBuilder_val(PMB),
                                               Bool_val(DisableUnroll));
-  return Val_unit;
+  CAMLreturn(Val_unit);
 }
 
 /* [ `Function ] Llvm.PassManager.t -> t -> unit */
-value llvm_pmbuilder_populate_function_pass_manager(LLVMPassManagerRef PM,
-                                                    value PMB) {
-  LLVMPassManagerBuilderPopulateFunctionPassManager(PMBuilder_val(PMB), PM);
-  return Val_unit;
+value llvm_pmbuilder_populate_function_pass_manager(value PM, value PMB) {
+  CAMLparam2(PM, PMB);
+  LLVMPassManagerBuilderPopulateFunctionPassManager(PMBuilder_val(PMB),
+                                                    PassManager_val(PM));
+  CAMLreturn(Val_unit);
 }
 
 /* [ `Module ] Llvm.PassManager.t -> t -> unit */
-value llvm_pmbuilder_populate_module_pass_manager(LLVMPassManagerRef PM,
-                                                  value PMB) {
-  LLVMPassManagerBuilderPopulateModulePassManager(PMBuilder_val(PMB), PM);
-  return Val_unit;
+value llvm_pmbuilder_populate_module_pass_manager(value PM, value PMB) {
+  CAMLparam2(PM, PMB);
+  LLVMPassManagerBuilderPopulateModulePassManager(PMBuilder_val(PMB),
+                                                  PassManager_val(PM));
+  CAMLreturn(Val_unit);
 }

@@ -10,25 +10,24 @@
 |* This file glues LLVM's OCaml interface to its C interface. These functions *|
 |* are by and large transparent wrappers to the corresponding C functions.    *|
 |*                                                                            *|
-|* Note that these functions intentionally take liberties with the CAMLparamX *|
-|* macros, since most of the parameters are not GC heap objects.              *|
-|*                                                                            *|
 \*===----------------------------------------------------------------------===*/
 
+#include "caml/alloc.h"
+#include "caml/callback.h"
+#include "caml/fail.h"
+#include "caml/memory.h"
+#include "llvm_ocaml.h"
 #include "llvm-c/Core.h"
 #include "llvm-c/Linker.h"
-#include "caml/alloc.h"
-#include "caml/memory.h"
-#include "caml/fail.h"
-#include "caml/callback.h"
 
 void llvm_raise(value Prototype, char *Message);
 
 /* llmodule -> llmodule -> unit */
-value llvm_link_modules(LLVMModuleRef Dst, LLVMModuleRef Src) {
-  if (LLVMLinkModules2(Dst, Src))
+value llvm_link_modules(value Dst, value Src) {
+  CAMLparam2(Dst, Src);
+  if (LLVMLinkModules2(Module_val(Dst), Module_val(Src)))
     llvm_raise(*caml_named_value("Llvm_linker.Error"),
                LLVMCreateMessage("Linking failed"));
 
-  return Val_unit;
+  CAMLreturn(Val_unit);
 }

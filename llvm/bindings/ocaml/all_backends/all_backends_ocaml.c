@@ -10,9 +10,6 @@
 |* This file glues LLVM's OCaml interface to its C interface. These functions *|
 |* are by and large transparent wrappers to the corresponding C functions.    *|
 |*                                                                            *|
-|* Note that these functions intentionally take liberties with the CAMLparamX *|
-|* macros, since most of the parameters are not GC heap objects.              *|
-|*                                                                            *|
 \*===----------------------------------------------------------------------===*/
 
 #include "llvm-c/Target.h"

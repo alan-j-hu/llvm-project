@@ -10,23 +10,24 @@
 |* This file glues LLVM's OCaml interface to its C interface. These functions *|
 |* are by and large transparent wrappers to the corresponding C functions.    *|
 |*                                                                            *|
-|* Note that these functions intentionally take liberties with the CAMLparamX *|
-|* macros, since most of the parameters are not GC heap objects.              *|
-|*                                                                            *|
 \*===----------------------------------------------------------------------===*/
 
-#include "llvm-c/Transforms/Vectorize.h"
-#include "caml/mlvalues.h"
+#include "caml/memory.h"
 #include "caml/misc.h"
+#include "caml/mlvalues.h"
+#include "llvm_ocaml.h"
+#include "llvm-c/Transforms/Vectorize.h"
 
 /* [<Llvm.PassManager.any] Llvm.PassManager.t -> unit */
-value llvm_add_loop_vectorize(LLVMPassManagerRef PM) {
-  LLVMAddLoopVectorizePass(PM);
-  return Val_unit;
+value llvm_add_loop_vectorize(value PM) {
+  CAMLparam1(PM);
+  LLVMAddLoopVectorizePass(PassManager_val(PM));
+  CAMLreturn(Val_unit);
 }
 
 /* [<Llvm.PassManager.any] Llvm.PassManager.t -> unit */
-value llvm_add_slp_vectorize(LLVMPassManagerRef PM) {
-  LLVMAddSLPVectorizePass(PM);
-  return Val_unit;
+value llvm_add_slp_vectorize(value PM) {
+  CAMLparam1(PM);
+  LLVMAddSLPVectorizePass(PassManager_val(PM));
+  CAMLreturn(Val_unit);
 }
