@@ -18,15 +18,18 @@
 #include "llvm-c/Transforms/Vectorize.h"
 #include "caml/mlvalues.h"
 #include "caml/misc.h"
+#include "llvm_ocaml.h"
 
 /* [<Llvm.PassManager.any] Llvm.PassManager.t -> unit */
-value llvm_add_loop_vectorize(LLVMPassManagerRef PM) {
-  LLVMAddLoopVectorizePass(PM);
-  return Val_unit;
+value llvm_add_loop_vectorize(value PM) {
+  CAMLparam1(PM);
+  LLVMAddLoopVectorizePass(PassManager_val(PM));
+  CAMLreturn(Val_unit);
 }
 
 /* [<Llvm.PassManager.any] Llvm.PassManager.t -> unit */
-value llvm_add_slp_vectorize(LLVMPassManagerRef PM) {
-  LLVMAddSLPVectorizePass(PM);
-  return Val_unit;
+value llvm_add_slp_vectorize(value PM) {
+  CAMLparam1(PM);
+  LLVMAddSLPVectorizePass(PassManager_val(PM));
+  CAMLreturn(Val_unit);
 }
