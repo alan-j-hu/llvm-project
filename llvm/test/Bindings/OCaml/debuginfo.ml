@@ -286,7 +286,7 @@ let test_variables f dibuilder file_di fun_di =
     ~location ~instr:entry_term
   in
   let () = Printf.printf "%s\n" (Llvm.string_of_llvalue vdi) in
-  (* CHECK: call void @llvm.dbg.declare(metadata ptr %my_alloca, metadata {{![0-9]+}}, metadata !DIExpression()), !dbg {{\![0-9]+}}
+  (* CHECK: call void @llvm.dbg.declare(metadata i64* %my_alloca, metadata {{![0-9]+}}, metadata !DIExpression()), !dbg {{\![0-9]+}}
   *)
   let arg0 = (Llvm.params f).(0) in
   let arg_var = Llvm_debuginfo.dibuild_create_parameter_variable dibuilder ~scope:fun_di

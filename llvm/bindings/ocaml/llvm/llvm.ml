@@ -379,10 +379,17 @@ external set_diagnostic_handler
   = "llvm_set_diagnostic_handler"
 
 (*===-- Contexts ----------------------------------------------------------===*)
-external create_context : unit -> llcontext = "llvm_create_context"
+external create_context : unit -> llcontext
+                        = "llvm_create_context"
 external dispose_context : llcontext -> unit = "llvm_dispose_context"
-external global_context : unit -> llcontext = "llvm_global_context"
+external global_context : unit -> llcontext
+                        = "llvm_global_context"
+external set_opaque_pointers_false : llcontext -> unit =
+  "llvm_set_opaque_pointers_false"
 external mdkind_id : llcontext -> string -> llmdkind = "llvm_mdkind_id"
+
+let () =
+  set_opaque_pointers_false (global_context ())
 
 (*===-- Attributes --------------------------------------------------------===*)
 exception UnknownAttribute of string
@@ -506,8 +513,11 @@ external is_literal : lltype -> bool = "llvm_is_literal"
 external subtypes : lltype -> lltype array = "llvm_subtypes"
 external array_type : lltype -> int -> lltype = "llvm_array_type"
 external pointer_type : lltype -> lltype = "llvm_pointer_type"
+external pointer_type2 : llcontext -> lltype = "llvm_pointer_type2"
 external qualified_pointer_type : lltype -> int -> lltype
                                 = "llvm_qualified_pointer_type"
+external qualified_pointer_type2 : llcontext -> int -> lltype
+                                 = "llvm_qualified_pointer_type2"
 external vector_type : lltype -> int -> lltype = "llvm_vector_type"
 
 external element_type : lltype -> lltype = "llvm_get_element_type"
@@ -664,6 +674,8 @@ external const_gep2 : lltype -> llvalue -> llvalue array -> llvalue
                     = "llvm_const_gep2"
 external const_in_bounds_gep : llvalue -> llvalue array -> llvalue
                              = "llvm_const_in_bounds_gep"
+external const_in_bounds_gep2 : lltype -> llvalue -> llvalue array -> llvalue
+                              = "llvm_const_in_bounds_gep2"
 external const_trunc : llvalue -> lltype -> llvalue = "llvm_const_trunc"
 external const_sext : llvalue -> lltype -> llvalue = "llvm_const_sext"
 external const_zext : llvalue -> lltype -> llvalue = "llvm_const_zext"

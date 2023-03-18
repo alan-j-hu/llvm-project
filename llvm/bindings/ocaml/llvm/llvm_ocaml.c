@@ -229,7 +229,11 @@ value llvm_set_diagnostic_handler(value C, value Handler) {
 /*===-- Contexts ----------------------------------------------------------===*/
 
 /* unit -> llcontext */
-value llvm_create_context(value Unit) { return to_val(LLVMContextCreate()); }
+value llvm_create_context(value Unit) {
+  LLVMContextRef C = LLVMContextCreate();
+  LLVMContextSetOpaquePointers(C, 0);
+  return to_val(C);
+}
 
 /* llcontext -> unit */
 value llvm_dispose_context(value C) {
@@ -240,6 +244,11 @@ value llvm_dispose_context(value C) {
 
 /* unit -> llcontext */
 value llvm_global_context(value Unit) { return to_val(LLVMGetGlobalContext()); }
+
+value llvm_set_opaque_pointers_false(value C) {
+  LLVMContextSetOpaquePointers(Context_val(C), 0);
+  return Val_unit;
+}
 
 /* llcontext -> string -> int */
 value llvm_mdkind_id(value C, value Name) {
@@ -636,16 +645,29 @@ value llvm_array_type(value ElementTy, value Count) {
   return to_val(LLVMArrayType(Type_val(ElementTy), Int_val(Count)));
 }
 
-/* llcontext -> lltype */
+/* lltype -> lltype */
 value llvm_pointer_type(value ElementTy) {
   LLVMTypeRef Type = LLVMPointerType(Type_val(ElementTy), 0);
   return to_val(Type);
 }
 
-/* llcontext -> int -> lltype */
+/* llcontext -> lltype */
+value llvm_pointer_type2(value C) {
+  LLVMTypeRef Type = LLVMPointerTypeInContext(Context_val(C), 0);
+  return to_val(Type);
+}
+
+/* lltype -> int -> lltype */
 value llvm_qualified_pointer_type(value ElementTy, value AddressSpace) {
   LLVMTypeRef Type =
       LLVMPointerType(Type_val(ElementTy), Int_val(AddressSpace));
+  return to_val(Type);
+}
+
+/* llcontext -> int -> lltype */
+value llvm_qualified_pointer_type2(value C, value AddressSpace) {
+  LLVMTypeRef Type =
+      LLVMPointerTypeInContext(Context_val(C), Int_val(AddressSpace));
   return to_val(Type);
 }
 
@@ -1288,6 +1310,16 @@ value llvm_const_in_bounds_gep(value ConstantVal, value Indices) {
   LLVMValueRef *Temp = from_val_array(Indices);
   LLVMValueRef Value =
       LLVMConstInBoundsGEP(Value_val(ConstantVal), Temp, Length);
+  free(Temp);
+  return to_val(Value);
+}
+
+/* lltype -> llvalue -> llvalue array -> llvalue */
+value llvm_const_in_bounds_gep2(value Ty, value ConstantVal, value Indices) {
+  mlsize_t Length = Wosize_val(Indices);
+  LLVMValueRef *Temp = from_val_array(Indices);
+  LLVMValueRef Value =
+      LLVMConstInBoundsGEP2(Type_val(Ty), Value_val(ConstantVal), Temp, Length);
   free(Temp);
   return to_val(Value);
 }
