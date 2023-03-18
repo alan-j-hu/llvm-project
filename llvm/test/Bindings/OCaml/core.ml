@@ -1,7 +1,7 @@
 (* RUN: rm -rf %t && mkdir -p %t && cp %s %t/core.ml && cp %S/Utils/Testsuite.ml %t/Testsuite.ml
- * RUN: %ocamlc -g -w +A -package llvm.analysis -package llvm.bitwriter -I %t/ -linkpkg %t/Testsuite.ml %t/core.ml -o %t/executable
+ * RUN: %ocamlc -g -w +A-3 -package llvm.analysis -package llvm.bitwriter -I %t/ -linkpkg %t/Testsuite.ml %t/core.ml -o %t/executable
  * RUN: %t/executable %t/bitcode.bc
- * RUN: %ocamlopt -g -w +A -package llvm.analysis -package llvm.bitwriter -I %t/ -linkpkg %t/Testsuite.ml %t/core.ml -o %t/executable
+ * RUN: %ocamlopt -g -w +A-3 -package llvm.analysis -package llvm.bitwriter -I %t/ -linkpkg %t/Testsuite.ml %t/core.ml -o %t/executable
  * RUN: %t/executable %t/bitcode.bc
  * RUN: llvm-dis < %t/bitcode.bc > %t/dis.ll
  * RUN: FileCheck %s < %t/dis.ll
@@ -213,7 +213,7 @@ let test_constants () =
   ignore (define_global "const_all_ones" c m);
 
   group "pointer null"; begin
-    (* CHECK: const_pointer_null = global ptr null
+    (* CHECK: const_pointer_null = global i64* null
      *)
     let c = const_pointer_null (pointer_type i64_type) in
     ignore (define_global "const_pointer_null" c m);
@@ -628,7 +628,7 @@ let test_users () =
 (*===-- Aliases -----------------------------------------------------------===*)
 
 let test_aliases () =
-  (* CHECK: @alias = alias i32, ptr @aliasee
+  (* CHECK: @alias = alias i32, i32* @aliasee
    *)
   let forty_two32 = const_int i32_type 42 in
   let v = define_global "aliasee" forty_two32 m in
@@ -998,9 +998,9 @@ let test_builder () =
      * CHECK-DAG: %build_fptrunc2 = fptrunc double %build_sitofp to float
      * CHECK-DAG: %build_fpext = fpext float %build_fptrunc to double
      * CHECK-DAG: %build_fpext2 = fpext float %build_fptrunc to double
-     * CHECK-DAG: %build_inttoptr = inttoptr i32 %P1 to ptr
-     * CHECK-DAG: %build_ptrtoint = ptrtoint ptr %build_inttoptr to i64
-     * CHECK-DAG: %build_ptrtoint2 = ptrtoint ptr %build_inttoptr to i64
+     * CHECK-DAG: %build_inttoptr = inttoptr i32 %P1 to i8*
+     * CHECK-DAG: %build_ptrtoint = ptrtoint i8* %build_inttoptr to i64
+     * CHECK-DAG: %build_ptrtoint2 = ptrtoint i8* %build_inttoptr to i64
      * CHECK-DAG: %build_bitcast = bitcast i64 %build_ptrtoint to double
      * CHECK-DAG: %build_bitcast2 = bitcast i64 %build_ptrtoint to double
      * CHECK-DAG: %build_bitcast3 = bitcast i64 %build_ptrtoint to double
@@ -1039,7 +1039,7 @@ let test_builder () =
      * CHECK: %build_fcmp_false = fcmp false float %F1, %F2
      * CHECK: %build_fcmp_true = fcmp true float %F2, %F1
      * CHECK: %build_is_null{{.*}}= icmp eq{{.*}}%X0,{{.*}}null
-     * CHECK: %build_is_not_null = icmp ne ptr %X1, null
+     * CHECK: %build_is_not_null = icmp ne i8* %X1, null
      * CHECK: %build_ptrdiff
      *)
     let c = build_icmp Icmp.Ne    p1 p2 "build_icmp_ne" atentry in
@@ -1070,7 +1070,7 @@ let test_builder () =
   group "miscellaneous"; begin
     (* CHECK: %build_call = tail call cc63 zeroext i32 @{{.*}}(i32 signext %P2, i32 %P1)
      * CHECK: %build_select = select i1 %build_icmp, i32 %P1, i32 %P2
-     * CHECK: %build_va_arg = va_arg ptr null, i32
+     * CHECK: %build_va_arg = va_arg i8** null, i32
      * CHECK: %build_extractelement = extractelement <4 x i32> %Vec1, i32 %P2
      * CHECK: %build_insertelement = insertelement <4 x i32> %Vec1, i32 %P1, i32 %P2
      * CHECK: %build_shufflevector = shufflevector <4 x i32> %Vec1, <4 x i32> %Vec2, <4 x i32> <i32 1, i32 1, i32 0, i32 0>
@@ -1198,7 +1198,7 @@ let test_builder () =
       end;
       (* CHECK: landingpad
        * CHECK: cleanup
-       * CHECK: catch{{.*}}ptr{{.*}}@_ZTIc
+       * CHECK: catch{{.*}}i8**{{.*}}@_ZTIc
        * CHECK: filter{{.*}}@_ZTIPKc{{.*}}@_ZTId
        * CHECK: resume
        * *)
@@ -1248,7 +1248,7 @@ let test_builder () =
 
   group "malloc/free"; begin
       (* CHECK: call{{.*}}@malloc(i32 ptrtoint
-       * CHECK: call{{.*}}@free(ptr
+       * CHECK: call{{.*}}@free(i8*
        * CHECK: call{{.*}}@malloc(i32 %
        *)
       let bb1 = append_block context "MallocBlock1" fn in
@@ -1260,7 +1260,7 @@ let test_builder () =
   end;
 
   group "indirectbr"; begin
-    (* CHECK: indirectbr ptr blockaddress(@X7, %IBRBlock2), [label %IBRBlock2, label %IBRBlock3]
+    (* CHECK: indirectbr i8* blockaddress(@X7, %IBRBlock2), [label %IBRBlock2, label %IBRBlock3]
      *)
     let bb1 = append_block context "IBRBlock1" fn in
 
@@ -1369,12 +1369,12 @@ let test_builder () =
 
     (* CHECK: %build_alloca = alloca i32
      * CHECK: %build_array_alloca = alloca i32, i32 %P2
-     * CHECK: %build_load = load volatile i32, ptr %build_array_alloca, align 4
-     * CHECK: store volatile i32 %P2, ptr %build_alloca, align 4
-     * CHECK: %build_gep = getelementptr i32, ptr %build_array_alloca, i32 %P2
-     * CHECK: %build_in_bounds_gep = getelementptr inbounds i32, ptr %build_array_alloca, i32 %P2
+     * CHECK: %build_load = load volatile i32, i32* %build_array_alloca, align 4
+     * CHECK: store volatile i32 %P2, i32* %build_alloca, align 4
+     * CHECK: %build_gep = getelementptr i32, i32* %build_array_alloca, i32 %P2
+     * CHECK: %build_in_bounds_gep = getelementptr inbounds i32, i32* %build_array_alloca, i32 %P2
      * CHECK: %build_struct_gep = getelementptr inbounds{{.*}}%build_alloca2, i32 0, i32 1
-     * CHECK: %build_atomicrmw = atomicrmw xchg ptr %p, i8 42 seq_cst
+     * CHECK: %build_atomicrmw = atomicrmw xchg i8* %p, i8 42 seq_cst
      *)
     let alloca = build_alloca i32_type "build_alloca" b in
     let array_alloca = build_array_alloca i32_type p2 "build_array_alloca" b in
