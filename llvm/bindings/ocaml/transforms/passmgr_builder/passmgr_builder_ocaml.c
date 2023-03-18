@@ -15,10 +15,11 @@
 |*                                                                            *|
 \*===----------------------------------------------------------------------===*/
 
-#include "llvm-c/Transforms/PassManagerBuilder.h"
-#include "caml/mlvalues.h"
 #include "caml/custom.h"
 #include "caml/misc.h"
+#include "caml/mlvalues.h"
+#include "llvm_ocaml.h"
+#include "llvm-c/Transforms/PassManagerBuilder.h"
 
 #define PMBuilder_val(v) (*(LLVMPassManagerBuilderRef *)(Data_custom_val(v)))
 
@@ -33,8 +34,8 @@ static struct custom_operations pmbuilder_ops = {
     custom_compare_ext_default};
 
 static value alloc_pmbuilder(LLVMPassManagerBuilderRef Ref) {
-  value Val =
-      alloc_custom(&pmbuilder_ops, sizeof(LLVMPassManagerBuilderRef), 0, 1);
+  value Val = caml_alloc_custom(&pmbuilder_ops,
+                                sizeof(LLVMPassManagerBuilderRef), 0, 1);
   PMBuilder_val(Val) = Ref;
   return Val;
 }
@@ -78,15 +79,15 @@ value llvm_pmbuilder_set_disable_unroll_loops(value DisableUnroll, value PMB) {
 }
 
 /* [ `Function ] Llvm.PassManager.t -> t -> unit */
-value llvm_pmbuilder_populate_function_pass_manager(LLVMPassManagerRef PM,
-                                                    value PMB) {
-  LLVMPassManagerBuilderPopulateFunctionPassManager(PMBuilder_val(PMB), PM);
+value llvm_pmbuilder_populate_function_pass_manager(value PM, value PMB) {
+  LLVMPassManagerBuilderPopulateFunctionPassManager(PMBuilder_val(PMB),
+                                                    PassManager_val(PM));
   return Val_unit;
 }
 
 /* [ `Module ] Llvm.PassManager.t -> t -> unit */
-value llvm_pmbuilder_populate_module_pass_manager(LLVMPassManagerRef PM,
-                                                  value PMB) {
-  LLVMPassManagerBuilderPopulateModulePassManager(PMBuilder_val(PMB), PM);
+value llvm_pmbuilder_populate_module_pass_manager(value PM, value PMB) {
+  LLVMPassManagerBuilderPopulateModulePassManager(PMBuilder_val(PMB),
+                                                  PassManager_val(PM));
   return Val_unit;
 }
