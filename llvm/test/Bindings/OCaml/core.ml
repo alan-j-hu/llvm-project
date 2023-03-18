@@ -215,7 +215,7 @@ let test_constants () =
   group "pointer null"; begin
     (* CHECK: const_pointer_null = global ptr null
      *)
-    let c = const_pointer_null (pointer_type i64_type) in
+    let c = const_pointer_null (pointer_type2 context) in
     ignore (define_global "const_pointer_null" c m);
   end;
 
@@ -256,7 +256,7 @@ let test_constants () =
    * CHECK: @const_icmp = global i1 icmp sle
    * CHECK: @const_fcmp = global i1 fcmp ole
    *)
-  let void_ptr = pointer_type i8_type in
+  let void_ptr = pointer_type2 context in
   let five = const_int i64_type 5 in
   let ffive = const_uitofp five double_type in
   let foldbomb_gv = define_global "FoldBomb" (const_null i8_type) m in
@@ -309,7 +309,7 @@ let test_constants () =
   ignore (define_global "const_fptoui" (const_fptoui ffoldbomb i32_type) m);
   ignore (define_global "const_fptosi" (const_fptosi ffoldbomb i32_type) m);
   ignore (define_global "const_ptrtoint" (const_ptrtoint
-    (const_gep2 i8_type (const_null (pointer_type i8_type))
+    (const_gep2 i8_type (const_null (pointer_type2 context))
                 [| const_int i32_type 1 |])
     i32_type) m);
   ignore (define_global "const_inttoptr" (const_inttoptr (const_add foldbomb five)
@@ -326,7 +326,7 @@ let test_constants () =
    * CHECK: const_insertelement{{.*}}insertelement
    * CHECK: const_shufflevector = global <4 x i32> <i32 0, i32 1, i32 1, i32 0>
    *)
-  ignore (define_global "const_size_of" (size_of (pointer_type i8_type)) m);
+  ignore (define_global "const_size_of" (size_of (pointer_type2 context)) m);
   ignore (define_global "const_gep" (const_gep2 i8_type foldbomb_gv [| five |])
           m);
   ignore (define_global "const_select" (const_select
@@ -359,7 +359,7 @@ let test_constants () =
 
   group "recursive struct"; begin
       let nsty = named_struct_type context "rec" in
-      let pty = pointer_type nsty in
+      let pty = pointer_type2 context in
       struct_set_body nsty [| i32_type; pty |] false;
       let elts = [| const_int i32_type 4; const_pointer_null pty |] in
       let grec_init = const_named_struct nsty elts in
@@ -467,7 +467,7 @@ let test_global_variables () =
     insist (None == lookup_global "GVar01" m);
     let g = declare_global i32_type "GVar01" m in
     insist (is_declaration g);
-    insist (pointer_type float_type ==
+    insist (pointer_type2 context ==
               type_of (declare_global float_type "GVar01" m));
     insist (g == declare_global i32_type "GVar01" m);
     insist (match lookup_global "GVar01" m with Some x -> x = g
@@ -476,7 +476,7 @@ let test_global_variables () =
     insist (None == lookup_global "QGVar01" m);
     let g = declare_qualified_global i32_type "QGVar01" 3 m in
     insist (is_declaration g);
-    insist (qualified_pointer_type float_type 3 ==
+    insist (qualified_pointer_type2 context 3 ==
               type_of (declare_qualified_global float_type "QGVar01" 3 m));
     insist (g == declare_qualified_global i32_type "QGVar01" 3 m);
     insist (match lookup_global "QGVar01" m with Some x -> x = g
@@ -646,10 +646,10 @@ let test_functions () =
   begin group "declare";
     insist (None = lookup_function "Fn1" m);
     let fn = declare_function "Fn1" ty m in
-    insist (pointer_type ty = type_of fn);
+    insist (pointer_type2 context = type_of fn);
     insist (is_declaration fn);
     insist (0 = Array.length (basic_blocks fn));
-    insist (pointer_type ty2 == type_of (declare_function "Fn1" ty2 m));
+    insist (pointer_type2 context == type_of (declare_function "Fn1" ty2 m));
     insist (fn == declare_function "Fn1" ty m);
     insist (None <> lookup_function "Fn1" m);
     insist (match lookup_function "Fn1" m with Some x -> x = fn
@@ -980,7 +980,7 @@ let test_builder () =
   end;
 
   group "casts"; begin
-    let void_ptr = pointer_type i8_type in
+    let void_ptr = pointer_type2 context in
 
     (* CHECK-DAG: %build_trunc = trunc i32 %P1 to i8
      * CHECK-DAG: %build_trunc2 = trunc i32 %P1 to i8
@@ -1021,7 +1021,7 @@ let test_builder () =
     ignore(build_zext_or_bitcast inst38 double_type "build_bitcast2" atentry);
     ignore(build_sext_or_bitcast inst38 double_type "build_bitcast3" atentry);
     ignore(build_trunc_or_bitcast inst38 double_type "build_bitcast4" atentry);
-    ignore(build_pointercast inst37 (pointer_type i16_type) "build_pointercast" atentry);
+    ignore(build_pointercast inst37 (pointer_type2 context) "build_pointercast" atentry);
 
     ignore(build_zext_or_bitcast inst28 i32_type "build_zext2" atentry);
     ignore(build_sext_or_bitcast inst29 i64_type "build_sext2" atentry);
@@ -1058,10 +1058,10 @@ let test_builder () =
     (* insist (Some Fcmp.True = fcmp_predicate c); *)
     insist (None = icmp_predicate c);
 
-    let g0 = declare_global (pointer_type i8_type) "g0" m in
-    let g1 = declare_global (pointer_type i8_type) "g1" m in
-    let p0 = build_load2 (pointer_type i8_type) g0 "X0" atentry in
-    let p1 = build_load2 (pointer_type i8_type) g1 "X1" atentry in
+    let g0 = declare_global (pointer_type2 context) "g0" m in
+    let g1 = declare_global (pointer_type2 context) "g1" m in
+    let p0 = build_load2 (pointer_type2 context) g0 "X0" atentry in
+    let p1 = build_load2 (pointer_type2 context) g1 "X1" atentry in
     ignore (build_is_null p0 "build_is_null" atentry);
     ignore (build_is_not_null p1 "build_is_not_null" atentry);
     ignore (build_ptrdiff2 i8_type p1 p0 "build_ptrdiff" atentry);
@@ -1105,7 +1105,7 @@ let test_builder () =
     let inst46 = build_icmp Icmp.Eq p1 p2 "build_icmp" atentry in
     ignore (build_select inst46 p1 p2 "build_select" atentry);
     ignore (build_va_arg
-      (const_null (pointer_type (pointer_type i8_type)))
+      (const_null (pointer_type2 context))
       i32_type "build_va_arg" atentry);
 
     (* Set up some vector vregs. *)
@@ -1177,12 +1177,12 @@ let test_builder () =
 
   (* see test/Feature/exception.ll *)
   let bblpad = append_block context "Bblpad" fn in
-  let rt = struct_type context [| pointer_type i8_type; i32_type |] in
+  let rt = struct_type context [| pointer_type2 context; i32_type |] in
   let ft = var_arg_function_type i32_type  [||] in
   let personality = declare_function "__gxx_personality_v0" ft m in
-  let ztic = declare_global (pointer_type i8_type) "_ZTIc" m in
-  let ztid = declare_global (pointer_type i8_type) "_ZTId" m in
-  let ztipkc = declare_global (pointer_type i8_type) "_ZTIPKc" m in
+  let ztic = declare_global (pointer_type2 context) "_ZTIc" m in
+  let ztid = declare_global (pointer_type2 context) "_ZTId" m in
+  let ztipkc = declare_global (pointer_type2 context) "_ZTIPKc" m in
   begin
       set_global_constant true ztic;
       set_global_constant true ztid;
@@ -1191,8 +1191,8 @@ let test_builder () =
        (builder_at_end context bblpad) in begin
            set_cleanup lp true;
            add_clause lp ztic;
-           insist((pointer_type (pointer_type i8_type)) = type_of ztid);
-           let ety = pointer_type (pointer_type i8_type) in
+           insist((pointer_type2 context) = type_of ztid);
+           let ety = pointer_type2 context in
            add_clause lp (const_array ety [| ztipkc; ztid |]);
            ignore (build_resume lp (builder_at_end context bblpad));
       end;
@@ -1252,7 +1252,7 @@ let test_builder () =
        * CHECK: call{{.*}}@malloc(i32 %
        *)
       let bb1 = append_block context "MallocBlock1" fn in
-      let m1 = (build_malloc (pointer_type i32_type) "m1"
+      let m1 = (build_malloc (pointer_type2 context) "m1"
       (builder_at_end context bb1)) in
       ignore (build_free m1 (builder_at_end context bb1));
       ignore (build_array_malloc i32_type p1 "m2" (builder_at_end context bb1));
@@ -1409,7 +1409,7 @@ let test_builder () =
   group "string"; begin
     let bb09 = append_block context "Bb09" fn in
     let b = builder_at_end context bb09 in
-    let p = build_alloca (pointer_type i8_type) "p" b in
+    let p = build_alloca (pointer_type2 context) "p" b in
     (* build_global_string is emitted above.
      * CHECK: store{{.*}}build_global_string1{{.*}}p
      * *)
