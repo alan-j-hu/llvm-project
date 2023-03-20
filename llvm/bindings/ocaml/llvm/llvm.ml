@@ -510,7 +510,7 @@ external qualified_pointer_type : lltype -> int -> lltype
                                 = "llvm_qualified_pointer_type"
 external vector_type : lltype -> int -> lltype = "llvm_vector_type"
 
-external element_type : lltype -> lltype = "LLVMGetElementType"
+external element_type : lltype -> lltype = "llvm_get_element_type"
 external array_length : lltype -> int = "llvm_array_length"
 external address_space : lltype -> int = "llvm_address_space"
 external vector_size : lltype -> int = "llvm_vector_size"
