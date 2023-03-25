@@ -69,19 +69,14 @@ value llvm_add_global_optimizer(value PM) {
 }
 
 /* [`Module] Llvm.PassManager.t -> unit */
-<<<<<<< HEAD
-value llvm_add_prune_eh(LLVMPassManagerRef PM) {
-  LLVMAddPruneEHPass(PM);
+value llvm_add_prune_eh(value PM) {
+  LLVMAddPruneEHPass(PassManager_val(PM));
   return Val_unit;
 }
 
 /* [`Module] Llvm.PassManager.t -> unit */
-value llvm_add_ipsccp(LLVMPassManagerRef PM) {
-  LLVMAddIPSCCPPass(PM);
-=======
 value llvm_add_ipsccp(value PM) {
   LLVMAddIPSCCPPass(PassManager_val(PM));
->>>>>>> 92ee7ce8521f (Patch release 16 for no naked pointers)
   return Val_unit;
 }
 
