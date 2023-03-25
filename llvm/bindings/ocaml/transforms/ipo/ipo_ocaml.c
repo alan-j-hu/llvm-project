@@ -15,84 +15,85 @@
 |*                                                                            *|
 \*===----------------------------------------------------------------------===*/
 
-#include "llvm-c/Transforms/IPO.h"
-#include "caml/mlvalues.h"
 #include "caml/misc.h"
+#include "caml/mlvalues.h"
+#include "llvm_ocaml.h"
+#include "llvm-c/Transforms/IPO.h"
 
 /* [`Module] Llvm.PassManager.t -> unit */
-value llvm_add_constant_merge(LLVMPassManagerRef PM) {
-  LLVMAddConstantMergePass(PM);
+value llvm_add_constant_merge(value PM) {
+  LLVMAddConstantMergePass(PassManager_val(PM));
   return Val_unit;
 }
 
 /* [`Module] Llvm.PassManager.t -> unit */
-value llvm_add_merge_functions(LLVMPassManagerRef PM) {
-  LLVMAddMergeFunctionsPass(PM);
+value llvm_add_merge_functions(value PM) {
+  LLVMAddMergeFunctionsPass(PassManager_val(PM));
   return Val_unit;
 }
 
 /* [`Module] Llvm.PassManager.t -> unit */
-value llvm_add_dead_arg_elimination(LLVMPassManagerRef PM) {
-  LLVMAddDeadArgEliminationPass(PM);
+value llvm_add_dead_arg_elimination(value PM) {
+  LLVMAddDeadArgEliminationPass(PassManager_val(PM));
   return Val_unit;
 }
 
 /* [`Module] Llvm.PassManager.t -> unit */
-value llvm_add_function_attrs(LLVMPassManagerRef PM) {
-  LLVMAddFunctionAttrsPass(PM);
+value llvm_add_function_attrs(value PM) {
+  LLVMAddFunctionAttrsPass(PassManager_val(PM));
   return Val_unit;
 }
 
 /* [`Module] Llvm.PassManager.t -> unit */
-value llvm_add_function_inlining(LLVMPassManagerRef PM) {
-  LLVMAddFunctionInliningPass(PM);
+value llvm_add_function_inlining(value PM) {
+  LLVMAddFunctionInliningPass(PassManager_val(PM));
   return Val_unit;
 }
 
 /* [`Module] Llvm.PassManager.t -> unit */
-value llvm_add_always_inliner(LLVMPassManagerRef PM) {
-  LLVMAddAlwaysInlinerPass(PM);
+value llvm_add_always_inliner(value PM) {
+  LLVMAddAlwaysInlinerPass(PassManager_val(PM));
   return Val_unit;
 }
 
 /* [`Module] Llvm.PassManager.t -> unit */
-value llvm_add_global_dce(LLVMPassManagerRef PM) {
-  LLVMAddGlobalDCEPass(PM);
+value llvm_add_global_dce(value PM) {
+  LLVMAddGlobalDCEPass(PassManager_val(PM));
   return Val_unit;
 }
 
 /* [`Module] Llvm.PassManager.t -> unit */
-value llvm_add_global_optimizer(LLVMPassManagerRef PM) {
-  LLVMAddGlobalOptimizerPass(PM);
+value llvm_add_global_optimizer(value PM) {
+  LLVMAddGlobalOptimizerPass(PassManager_val(PM));
   return Val_unit;
 }
 
 /* [`Module] Llvm.PassManager.t -> unit */
-value llvm_add_prune_eh(LLVMPassManagerRef PM) {
-  LLVMAddPruneEHPass(PM);
+value llvm_add_prune_eh(value PM) {
+  LLVMAddPruneEHPass(PassManager_val(PM));
   return Val_unit;
 }
 
 /* [`Module] Llvm.PassManager.t -> unit */
-value llvm_add_ipsccp(LLVMPassManagerRef PM) {
-  LLVMAddIPSCCPPass(PM);
+value llvm_add_ipsccp(value PM) {
+  LLVMAddIPSCCPPass(PassManager_val(PM));
   return Val_unit;
 }
 
 /* [`Module] Llvm.PassManager.t -> all_but_main:bool -> unit */
-value llvm_add_internalize(LLVMPassManagerRef PM, value AllButMain) {
-  LLVMAddInternalizePass(PM, Bool_val(AllButMain));
+value llvm_add_internalize(value PM, value AllButMain) {
+  LLVMAddInternalizePass(PassManager_val(PM), Bool_val(AllButMain));
   return Val_unit;
 }
 
 /* [`Module] Llvm.PassManager.t -> unit */
-value llvm_add_strip_dead_prototypes(LLVMPassManagerRef PM) {
-  LLVMAddStripDeadPrototypesPass(PM);
+value llvm_add_strip_dead_prototypes(value PM) {
+  LLVMAddStripDeadPrototypesPass(PassManager_val(PM));
   return Val_unit;
 }
 
 /* [`Module] Llvm.PassManager.t -> unit */
-value llvm_add_strip_symbols(LLVMPassManagerRef PM) {
-  LLVMAddStripSymbolsPass(PM);
+value llvm_add_strip_symbols(value PM) {
+  LLVMAddStripSymbolsPass(PassManager_val(PM));
   return Val_unit;
 }
