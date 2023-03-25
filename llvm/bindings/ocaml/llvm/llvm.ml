@@ -632,32 +632,12 @@ external string_of_const : llvalue -> string option = "llvm_string_of_const"
 external const_element : llvalue -> int -> llvalue = "llvm_const_element"
 
 (*--... Constant expressions ...............................................--*)
-<<<<<<< HEAD
-external align_of : lltype -> llvalue = "LLVMAlignOf"
-external size_of : lltype -> llvalue = "LLVMSizeOf"
-external const_neg : llvalue -> llvalue = "LLVMConstNeg"
-external const_nsw_neg : llvalue -> llvalue = "LLVMConstNSWNeg"
-external const_nuw_neg : llvalue -> llvalue = "LLVMConstNUWNeg"
-external const_fneg : llvalue -> llvalue = "LLVMConstFNeg"
-external const_not : llvalue -> llvalue = "LLVMConstNot"
-external const_add : llvalue -> llvalue -> llvalue = "LLVMConstAdd"
-external const_nsw_add : llvalue -> llvalue -> llvalue = "LLVMConstNSWAdd"
-external const_nuw_add : llvalue -> llvalue -> llvalue = "LLVMConstNUWAdd"
-external const_sub : llvalue -> llvalue -> llvalue = "LLVMConstSub"
-external const_nsw_sub : llvalue -> llvalue -> llvalue = "LLVMConstNSWSub"
-external const_nuw_sub : llvalue -> llvalue -> llvalue = "LLVMConstNUWSub"
-external const_mul : llvalue -> llvalue -> llvalue = "LLVMConstMul"
-external const_nsw_mul : llvalue -> llvalue -> llvalue = "LLVMConstNSWMul"
-external const_nuw_mul : llvalue -> llvalue -> llvalue = "LLVMConstNUWMul"
-external const_and : llvalue -> llvalue -> llvalue = "LLVMConstAnd"
-external const_or : llvalue -> llvalue -> llvalue = "LLVMConstOr"
-external const_xor : llvalue -> llvalue -> llvalue = "LLVMConstXor"
-=======
 external align_of : lltype -> llvalue = "llvm_align_of"
 external size_of : lltype -> llvalue = "llvm_size_of"
 external const_neg : llvalue -> llvalue = "llvm_const_neg"
 external const_nsw_neg : llvalue -> llvalue = "llvm_const_nsw_neg"
 external const_nuw_neg : llvalue -> llvalue = "llvm_const_nuw_neg"
+external const_fneg : llvalue -> llvalue = "llvm_const_fneg"
 external const_not : llvalue -> llvalue = "llvm_const_not"
 external const_add : llvalue -> llvalue -> llvalue = "llvm_const_add"
 external const_nsw_add : llvalue -> llvalue -> llvalue = "llvm_const_nsw_add"
@@ -671,39 +651,18 @@ external const_nuw_mul : llvalue -> llvalue -> llvalue = "llvm_const_nuw_mul"
 external const_and : llvalue -> llvalue -> llvalue = "llvm_const_and"
 external const_or : llvalue -> llvalue -> llvalue = "llvm_const_or"
 external const_xor : llvalue -> llvalue -> llvalue = "llvm_const_xor"
->>>>>>> 92ee7ce8521f (Patch release 16 for no naked pointers)
 external const_icmp : Icmp.t -> llvalue -> llvalue -> llvalue
                     = "llvm_const_icmp"
 external const_fcmp : Fcmp.t -> llvalue -> llvalue -> llvalue
                     = "llvm_const_fcmp"
-<<<<<<< HEAD
-external const_shl : llvalue -> llvalue -> llvalue = "LLVMConstShl"
-external const_lshr : llvalue -> llvalue -> llvalue = "LLVMConstLShr"
-external const_ashr : llvalue -> llvalue -> llvalue = "LLVMConstAShr"
-external const_gep : llvalue -> llvalue array -> llvalue = "llvm_const_gep"
-external const_gep2 : lltype -> llvalue -> llvalue array -> llvalue
-                    = "llvm_const_gep2"
-external const_in_bounds_gep : llvalue -> llvalue array -> llvalue
-                            = "llvm_const_in_bounds_gep"
-external const_trunc : llvalue -> lltype -> llvalue = "LLVMConstTrunc"
-external const_sext : llvalue -> lltype -> llvalue = "LLVMConstSExt"
-external const_zext : llvalue -> lltype -> llvalue = "LLVMConstZExt"
-external const_fptrunc : llvalue -> lltype -> llvalue = "LLVMConstFPTrunc"
-external const_fpext : llvalue -> lltype -> llvalue = "LLVMConstFPExt"
-external const_uitofp : llvalue -> lltype -> llvalue = "LLVMConstUIToFP"
-external const_sitofp : llvalue -> lltype -> llvalue = "LLVMConstSIToFP"
-external const_fptoui : llvalue -> lltype -> llvalue = "LLVMConstFPToUI"
-external const_fptosi : llvalue -> lltype -> llvalue = "LLVMConstFPToSI"
-external const_ptrtoint : llvalue -> lltype -> llvalue = "LLVMConstPtrToInt"
-external const_inttoptr : llvalue -> lltype -> llvalue = "LLVMConstIntToPtr"
-external const_bitcast : llvalue -> lltype -> llvalue = "LLVMConstBitCast"
-=======
 external const_shl : llvalue -> llvalue -> llvalue = "llvm_const_shl"
 external const_lshr : llvalue -> llvalue -> llvalue = "llvm_const_lshr"
 external const_ashr : llvalue -> llvalue -> llvalue = "llvm_const_ashr"
-external const_gep : lltype -> llvalue -> llvalue array -> llvalue
+external const_gep : llvalue -> llvalue array -> llvalue
                     = "llvm_const_gep"
-external const_in_bounds_gep : lltype -> llvalue -> llvalue array -> llvalue
+external const_gep2 : lltype -> llvalue -> llvalue array -> llvalue
+                    = "llvm_const_gep2"
+external const_in_bounds_gep : llvalue -> llvalue array -> llvalue
                              = "llvm_const_in_bounds_gep"
 external const_trunc : llvalue -> lltype -> llvalue = "llvm_const_trunc"
 external const_sext : llvalue -> lltype -> llvalue = "llvm_const_sext"
@@ -717,7 +676,6 @@ external const_fptosi : llvalue -> lltype -> llvalue = "llvm_const_fptosi"
 external const_ptrtoint : llvalue -> lltype -> llvalue = "llvm_const_ptrtoint"
 external const_inttoptr : llvalue -> lltype -> llvalue = "llvm_const_inttoptr"
 external const_bitcast : llvalue -> lltype -> llvalue = "llvm_const_bitcast"
->>>>>>> 92ee7ce8521f (Patch release 16 for no naked pointers)
 external const_zext_or_bitcast : llvalue -> lltype -> llvalue
                                = "llvm_const_zext_or_bitcast"
 external const_sext_or_bitcast : llvalue -> lltype -> llvalue
