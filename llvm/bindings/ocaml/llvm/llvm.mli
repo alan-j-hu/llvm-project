@@ -1171,6 +1171,10 @@ val const_ashr : llvalue -> llvalue -> llvalue
     See the method [llvm::ConstantExpr::getGetElementPtr]. *)
 val const_gep : lltype -> llvalue -> llvalue array -> llvalue
 
+val const_gep2 : lltype -> llvalue -> llvalue array -> llvalue
+[@@@ocaml.deprecated "const_gep2 is an alias of const_gep. Please use \
+                      const_gep."]
+
 (** [const_in_bounds_gep ty pc indices] returns the constant [getElementPtr] of
     [pc] with the constant integers indices from the array [indices].
     See the method [llvm::ConstantExpr::getInBoundsGetElementPtr]. *)
@@ -1505,6 +1509,10 @@ val set_externally_initialized : bool -> llvalue -> unit
     type [vt] the address space [sp] the aliasee [a] with the name [n].
     See the constructor for [llvm::GlobalAlias]. *)
 val add_alias : llmodule -> lltype -> int -> llvalue -> string -> llvalue
+
+val add_alias2 : llmodule -> lltype -> int -> llvalue -> string -> llvalue
+[@@@ocaml.deprecated "add_alias2 is an alias of add_alias. Please use \
+                      add_alias."]
 
 (** {7 Operations on functions} *)
 
@@ -2091,6 +2099,11 @@ val add_destination : llvalue -> llbasicblock -> unit
 val build_invoke : lltype -> llvalue -> llvalue array -> llbasicblock ->
                    llbasicblock -> string -> llbuilder -> llvalue
 
+val build_invoke2 : lltype -> llvalue -> llvalue array -> llbasicblock ->
+                    llbasicblock -> string -> llbuilder -> llvalue
+[@@@ocaml.deprecated "build_invoke2 is an alias of build_invoke. Please use \
+                      build_invoke."]
+
 (** [build_landingpad ty persfn numclauses name b] creates an
     [landingpad]
     instruction at the position specified by the instruction builder [b].
@@ -2331,6 +2344,10 @@ val build_array_alloca : lltype -> llvalue -> string -> llbuilder ->
     See the method [llvm::LLVMBuilder::CreateLoad]. *)
 val build_load : lltype -> llvalue -> string -> llbuilder -> llvalue
 
+val build_load2 : lltype -> llvalue -> string -> llbuilder -> llvalue
+[@@@ocaml.deprecated "build_load2 is an alias of build_load. Please use \
+                      build_load."]
+
 (** [build_store v p b] creates a
     [store %v, %p]
     instruction at the position specified by the instruction builder [b].
@@ -2352,6 +2369,11 @@ val build_atomicrmw : AtomicRMWBinOp.t -> llvalue -> llvalue ->
 val build_gep : lltype -> llvalue -> llvalue array -> string -> llbuilder ->
                       llvalue
 
+val build_gep2 : lltype -> llvalue -> llvalue array -> string -> llbuilder ->
+                      llvalue
+[@@@ocaml.deprecated "build_gep2 is an alias of build_gep. Please use \
+                      build_gep."]
+
 (** [build_in_bounds_gep srcty p indices name b] creates a
     [%name = gelementptr inbounds srcty, %p, indices...]
     instruction at the position specified by the instruction builder [b].
@@ -2359,12 +2381,22 @@ val build_gep : lltype -> llvalue -> llvalue array -> string -> llbuilder ->
 val build_in_bounds_gep : lltype -> llvalue -> llvalue array -> string ->
                                llbuilder -> llvalue
 
+val build_in_bounds_gep2 : lltype -> llvalue -> llvalue array -> string ->
+                               llbuilder -> llvalue
+[@@@ocaml.deprecated "build_in_bounds_gep2 is an alias of \
+                      build_in_bounds_gep. Please use build_in_bounds_gep."]
+
 (** [build_struct_gep srcty p idx name b] creates a
     [%name = getelementptr srcty, %p, 0, idx]
     instruction at the position specified by the instruction builder [b].
     See the method [llvm::LLVMBuilder::CreateStructGetElementPtr]. *)
 val build_struct_gep : lltype -> llvalue -> int -> string -> llbuilder ->
                            llvalue
+
+val build_struct_gep2 : lltype -> llvalue -> int -> string -> llbuilder ->
+                           llvalue
+[@@@ocaml.deprecated "build_struct_gep2 is an alias of build_struct_gep. \
+                      Please use build_struct_gep."]
 
 (** [build_global_string str name b] creates a series of instructions that adds
     a global string at the position specified by the instruction builder [b].
@@ -2526,6 +2558,11 @@ val build_empty_phi : lltype -> string -> llbuilder -> llvalue
 val build_call : lltype -> llvalue -> llvalue array -> string -> llbuilder ->
                        llvalue
 
+val build_call2 : lltype -> llvalue -> llvalue array -> string -> llbuilder ->
+                       llvalue
+[@@@ocaml.deprecated "build_call2 is an alias of build_call. Please use \
+                      build_call."]
+
 (** [build_select cond thenv elsev name b] creates a
     [%name = select %cond, %thenv, %elsev]
     instruction at the position specified by the instruction builder [b].
@@ -2592,6 +2629,11 @@ val build_is_not_null : llvalue -> string -> llbuilder -> llvalue
     See the method [llvm::LLVMBuilder::CreatePtrDiff]. *)
 val build_ptrdiff : lltype -> llvalue -> llvalue -> string -> llbuilder ->
                     llvalue
+
+val build_ptrdiff2 : lltype -> llvalue -> llvalue -> string -> llbuilder ->
+                     llvalue
+[@@@ocaml.deprecated "build_ptrdiff2 is an alias of build_ptrdiff. Please use \
+                      build_ptrdiff."]
 
 (** [build_freeze x name b] creates a
     [%name = freeze %x]
