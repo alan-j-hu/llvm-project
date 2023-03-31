@@ -506,8 +506,10 @@ external is_literal : lltype -> bool = "llvm_is_literal"
 external subtypes : lltype -> lltype array = "llvm_subtypes"
 external array_type : lltype -> int -> lltype = "llvm_array_type"
 external pointer_type : llcontext -> lltype = "llvm_pointer_type"
+let pointer_type2 = pointer_type
 external qualified_pointer_type : llcontext -> int -> lltype
                                 = "llvm_qualified_pointer_type"
+let qualified_pointer_type2 = qualified_pointer_type
 external vector_type : lltype -> int -> lltype = "llvm_vector_type"
 
 external element_type : lltype -> lltype = "llvm_get_element_type"
@@ -660,8 +662,10 @@ external const_lshr : llvalue -> llvalue -> llvalue = "llvm_const_lshr"
 external const_ashr : llvalue -> llvalue -> llvalue = "llvm_const_ashr"
 external const_gep : lltype -> llvalue -> llvalue array -> llvalue
                     = "llvm_const_gep"
+let const_gep2 = const_gep
 external const_in_bounds_gep : lltype -> llvalue -> llvalue array -> llvalue
                              = "llvm_const_in_bounds_gep"
+let const_in_bounds_gep2 = const_in_bounds_gep
 external const_trunc : llvalue -> lltype -> llvalue = "llvm_const_trunc"
 external const_sext : llvalue -> lltype -> llvalue = "llvm_const_sext"
 external const_zext : llvalue -> lltype -> llvalue = "llvm_const_zext"
@@ -799,6 +803,7 @@ let fold_right_globals f m init =
 (*--... Operations on aliases ..............................................--*)
 external add_alias : llmodule -> lltype -> int -> llvalue -> string -> llvalue
                    = "llvm_add_alias"
+let add_alias2 = add_alias
 
 (*--... Operations on functions ............................................--*)
 external declare_function : string -> lltype -> llmodule -> llvalue
@@ -1211,6 +1216,7 @@ external add_destination : llvalue -> llbasicblock -> unit
 external build_invoke : lltype -> llvalue -> llvalue array -> llbasicblock ->
                         llbasicblock -> string -> llbuilder -> llvalue
                       = "llvm_build_invoke_bc" "llvm_build_invoke_nat"
+let build_invoke2 = build_invoke
 external build_landingpad : lltype -> llvalue -> int -> string -> llbuilder ->
                             llvalue = "llvm_build_landingpad"
 external is_cleanup : llvalue -> bool = "llvm_is_cleanup"
@@ -1288,6 +1294,7 @@ external build_array_alloca : lltype -> llvalue -> string -> llbuilder ->
                               llvalue = "llvm_build_array_alloca"
 external build_load : lltype -> llvalue -> string -> llbuilder -> llvalue
                     = "llvm_build_load"
+let build_load2 = build_load
 external build_store : llvalue -> llvalue -> llbuilder -> llvalue
                      = "llvm_build_store"
 external build_atomicrmw : AtomicRMWBinOp.t -> llvalue -> llvalue ->
@@ -1297,10 +1304,13 @@ external build_atomicrmw : AtomicRMWBinOp.t -> llvalue -> llvalue ->
                            "llvm_build_atomicrmw_native"
 external build_gep : lltype -> llvalue -> llvalue array -> string -> llbuilder
                    -> llvalue = "llvm_build_gep"
+let build_gep2 = build_gep
 external build_in_bounds_gep : lltype -> llvalue -> llvalue array -> string ->
                              llbuilder -> llvalue = "llvm_build_in_bounds_gep"
+let build_in_bounds_gep2 = build_in_bounds_gep
 external build_struct_gep : lltype -> llvalue -> int -> string -> llbuilder ->
                           llvalue = "llvm_build_struct_gep"
+let build_struct_gep2 = build_struct_gep
 
 external build_global_string : string -> string -> llbuilder -> llvalue
                              = "llvm_build_global_string"
@@ -1358,6 +1368,7 @@ external build_empty_phi : lltype -> string -> llbuilder -> llvalue
                          = "llvm_build_empty_phi"
 external build_call : lltype -> llvalue -> llvalue array -> string ->
                       llbuilder -> llvalue = "llvm_build_call"
+let build_call2 = build_call
 external build_select : llvalue -> llvalue -> llvalue -> string -> llbuilder ->
                         llvalue = "llvm_build_select"
 external build_va_arg : llvalue -> lltype -> string -> llbuilder -> llvalue
@@ -1379,6 +1390,7 @@ external build_is_not_null : llvalue -> string -> llbuilder -> llvalue
                            = "llvm_build_is_not_null"
 external build_ptrdiff : lltype -> llvalue -> llvalue -> string -> llbuilder ->
                          llvalue = "llvm_build_ptrdiff"
+let build_ptrdiff2 = build_ptrdiff
 external build_freeze : llvalue -> string -> llbuilder -> llvalue
                       = "llvm_build_freeze"
 
