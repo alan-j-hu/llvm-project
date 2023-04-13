@@ -1,0 +1,10 @@
+(library
+ (name llvm_transform_utils)
+ (public_name llvm.transform_utils)
+ (libraries llvm)
+ (foreign_stubs
+  (language c)
+  (names transform_utils_ocaml)
+  (extra_deps ../../llvm/llvm_ocaml.h)
+  (flags (:include ../../c_flags.sexp)))
+  (c_library_flags (:include ../../c_library_flags.sexp)))

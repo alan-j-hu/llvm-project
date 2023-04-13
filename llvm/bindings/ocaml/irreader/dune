@@ -1,0 +1,10 @@
+(library
+ (name llvm_irreader)
+ (public_name llvm.irreader)
+ (libraries llvm)
+ (foreign_stubs
+  (language c)
+  (names irreader_ocaml)
+  (extra_deps ../llvm/llvm_ocaml.h)
+  (flags (:include ../c_flags.sexp)))
+  (c_library_flags (:include ../c_library_flags.sexp)))

@@ -1,0 +1,10 @@
+(library
+ (name llvm_scalar_opts)
+ (public_name llvm.scalar_opts)
+ (libraries llvm)
+ (foreign_stubs
+  (language c)
+  (names scalar_opts_ocaml)
+  (extra_deps ../../llvm/llvm_ocaml.h)
+  (flags (:include ../../c_flags.sexp)))
+  (c_library_flags (:include ../../c_library_flags.sexp)))
