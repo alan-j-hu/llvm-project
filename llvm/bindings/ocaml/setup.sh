@@ -50,6 +50,10 @@ llvm_targets=$(llvm_config --targets-built)
 
 echo "
 (env
- (_ (env-vars (LLVM_CONFIG $llvm_config))
+ (_ (env-vars
+     (LLVM_CONFIG $llvm_config)
+     (LLVM_SHARED_AVAILABLE $support_shared_mode)
+     (LLVM_STATIC_AVAILABLE $support_static_mode))
+    (binaries (discover.sh as discover.sh))
     (c_flags $base_cflags)))
 " > "dune"

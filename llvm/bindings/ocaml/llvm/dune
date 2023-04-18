@@ -1,11 +1,47 @@
-(library
- (name llvm)
- (public_name llvm)
- (foreign_stubs
-  (language c)
-  (names llvm_ocaml))
- (c_library_flags (:include c_library_flags.sexp)))
+(subdir virtual
+ (copy_files ../*.mli)
+ (copy_files ../*.h)
 
-(rule
- (targets c_library_flags.sexp)
- (action (run ../discover.sh core)))
+ (library
+  (name llvm)
+  (public_name llvm)
+  (virtual_modules llvm)))
+
+(subdir shared
+ (copy_files ../*.ml)
+ (copy_files ../*.c)
+ (copy_files ../*.h)
+
+ (rule
+  (targets c_library_flags.sexp)
+  (action (run discover.sh --link-shared --libs core)))
+
+ (library
+  (name llvm_shared)
+  (public_name llvm.shared)
+  (implements llvm)
+  (enabled_if (= %{profile} release))
+  (foreign_stubs
+   (language c)
+   (names llvm_ocaml))
+  (c_library_flags (:include c_library_flags.sexp))))
+
+
+(subdir static
+ (copy_files ../*.ml)
+ (copy_files ../*.c)
+ (copy_files ../*.h)
+
+ (rule
+  (targets c_library_flags.sexp)
+  (action (run discover.sh --link-static --libs core)))
+
+ (library
+  (name llvm_static)
+  (public_name llvm.static)
+  (implements llvm)
+  (enabled_if (= %{profile} dev))
+  (foreign_stubs
+   (language c)
+   (names llvm_ocaml))
+  (c_library_flags (:include c_library_flags.sexp))))
