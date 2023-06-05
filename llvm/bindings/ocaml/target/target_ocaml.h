@@ -1,4 +1,4 @@
-/*===-- passbuilder_ocaml.c - LLVM OCaml Glue -------------------*- C++ -*-===*\
+/*===-- target_ocaml.h - LLVM OCaml Glue ------------------------*- C++ -*-===*\
 |*                                                                            *|
 |* Part of the LLVM Project, under the Apache License v2.0 with LLVM          *|
 |* Exceptions.                                                                *|
@@ -15,19 +15,4 @@
 |*                                                                            *|
 \*===----------------------------------------------------------------------===*/
 
-#include "llvm_ocaml.h"
-#include "llvm-c/Transforms/PassBuilder.h"
-
-#define PassBuilderOptions_val(v) ((LLVMPassBuilderOptionsRef)from_val(v))
-
-value llvm_run_passes(value M, value Passes, value TM, value Options) {
-  CAMLparam1(TM);
-  LLVMErrorRef E =
-      LLVMRunPasses(Module_val(M), String_val(Passes), TargetMachine_val(TM),
-                    PassBuilderOptions_val(Options));
-  if (E == NULL) {
-    return Val_none;
-  } else {
-    return Val_none;
-  }
-}
+#define TargetMachine_val(v) (*(LLVMTargetMachineRef *)(Data_custom_val(v)))
