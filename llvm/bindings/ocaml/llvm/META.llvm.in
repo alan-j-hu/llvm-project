@@ -70,7 +70,7 @@ package "transform_utils" (
 )
 
 package "passbuilder" (
-    requires = "llvm"
+    requires = "llvm,llvm.error,llvm.target"
     version = "@PACKAGE_VERSION@"
     description = "Pass Manager Builder for LLVM"
     archive(byte) = "llvm_passbuilder.cma"

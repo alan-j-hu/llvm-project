@@ -16,9 +16,21 @@
 \*===----------------------------------------------------------------------===*/
 
 #include "llvm_ocaml.h"
+#include "target_ocaml.h"
 #include "llvm-c/Transforms/PassBuilder.h"
+#include <caml/memory.h>
 
 #define PassBuilderOptions_val(v) ((LLVMPassBuilderOptionsRef)from_val(v))
+
+value llvm_create_passbuilder_options(value Unit) {
+  LLVMPassBuilderOptionsRef PBO = LLVMCreatePassBuilderOptions();
+  return to_val(PBO);
+}
+
+value llvm_dispose_passbuilder_options(value PBO) {
+  LLVMDisposePassBuilderOptions(PassBuilderOptions_val(PBO));
+  return Val_unit;
+}
 
 value llvm_run_passes(value M, value Passes, value TM, value Options) {
   CAMLparam1(TM);
@@ -26,8 +38,12 @@ value llvm_run_passes(value M, value Passes, value TM, value Options) {
       LLVMRunPasses(Module_val(M), String_val(Passes), TargetMachine_val(TM),
                     PassBuilderOptions_val(Options));
   if (E == NULL) {
-    return Val_none;
+    value ok = caml_alloc(1, 0);
+    Store_field(ok, 0, Val_unit);
+    return ok;
   } else {
-    return Val_none;
+    value error = caml_alloc(1, 1);
+    Store_field(error, 0, to_val(E));
+    return error;
   }
 }
