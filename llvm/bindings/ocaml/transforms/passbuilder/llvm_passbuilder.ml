@@ -8,12 +8,6 @@
 
 type llpassbuilder_options
 
-external create_passbuilder_options : unit -> llpassbuilder_options =
-  "llvm_create_passbuilder_options"
-
-external dispose_passbuilder_options : llpassbuilder_options -> unit =
-  "llvm_dispose_passbuilder_options"
-
 external run_passes
   : Llvm.llmodule
   -> string
@@ -21,3 +15,15 @@ external run_passes
   -> llpassbuilder_options
   -> (unit, Llvm_error.llerror) result
   = "llvm_run_passes"
+
+external create_passbuilder_options : unit -> llpassbuilder_options =
+  "llvm_create_passbuilder_options"
+
+external set_verify_each : llpassbuilder_options -> bool -> unit =
+  "llvm_set_verify_each"
+
+external set_debug_logging : llpassbuilder_options -> bool -> unit =
+  "llvm_set_debug_logging"
+
+external dispose_passbuilder_options : llpassbuilder_options -> unit =
+  "llvm_dispose_passbuilder_options"

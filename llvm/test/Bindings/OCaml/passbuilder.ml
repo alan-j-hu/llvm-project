@@ -24,8 +24,9 @@ let machine =
 let options = Llvm_passbuilder.create_passbuilder_options ()
 
 (*===-- PassBuilder -------------------------------------------------------===*)
-
 let () =
+  Llvm_passbuilder.set_verify_each options true;
+  Llvm_passbuilder.set_debug_logging options true;
   match Llvm_passbuilder.run_passes m "no-op-module" machine options with
   | Error _ -> assert false
   | Ok () -> ()

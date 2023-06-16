@@ -15,4 +15,10 @@
 |*                                                                            *|
 \*===----------------------------------------------------------------------===*/
 
+#include "llvm_ocaml.h"
+#include "llvm-c/Error.h"
+
 #define Error_val(v) ((LLVMErrorRef)(from_val(v)))
+
+/* Maps LLVMErrorSuccess to Ok () and other errors to Error err */
+value error_to_result(LLVMErrorRef E);

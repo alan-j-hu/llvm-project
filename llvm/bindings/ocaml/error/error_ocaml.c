@@ -16,8 +16,19 @@
 \*===----------------------------------------------------------------------===*/
 
 #include "error_ocaml.h"
-#include "llvm_ocaml.h"
-#include "llvm-c/Error.h"
+#include <caml/memory.h>
+
+value error_to_result(LLVMErrorRef Err) {
+  if (Err == LLVMErrorSuccess) {
+    value result = caml_alloc(1, 0);
+    Store_field(result, 0, Val_unit);
+    return result;
+  } else {
+    value result = caml_alloc(1, 1);
+    Store_field(result, 0, to_val(Err));
+    return result;
+  }
+}
 
 value llvm_create_string_error(value ErrMsg) {
   LLVMErrorRef Err = LLVMCreateStringError(String_val(ErrMsg));

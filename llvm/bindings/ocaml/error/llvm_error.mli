@@ -8,5 +8,9 @@
 
 type llerror
 
+(** Creates a StringError. *)
 val create_string_error : string -> llerror
+
+(** Returns the error message. This operation consumes the error, which is not
+    usable once this call returns. *)
 val get_error_message : llerror -> string
