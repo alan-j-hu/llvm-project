@@ -40,7 +40,9 @@ let () =
   Llvm_passbuilder.passbuilder_options_set_merge_functions options true;
   Llvm_passbuilder.passbuilder_options_set_inliner_threshold options 2;
   match Llvm_passbuilder.run_passes m "no-op-module" machine options with
-  | Error _ -> assert false
+  | Error e ->
+    prerr_endline e;
+    assert false
   | Ok () -> ()
 
 let () =

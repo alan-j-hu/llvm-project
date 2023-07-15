@@ -13,7 +13,7 @@ external run_passes
   -> string
   -> Llvm_target.TargetMachine.t
   -> llpassbuilder_options
-  -> (unit, Llvm_error.llerror) result
+  -> (unit, string) result
   = "llvm_run_passes"
 
 external create_passbuilder_options : unit -> llpassbuilder_options =

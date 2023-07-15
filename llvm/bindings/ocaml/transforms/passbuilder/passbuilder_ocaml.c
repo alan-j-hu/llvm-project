@@ -15,9 +15,9 @@
 |*                                                                            *|
 \*===----------------------------------------------------------------------===*/
 
-#include "error_ocaml.h"
 #include "llvm_ocaml.h"
 #include "target_ocaml.h"
+#include "llvm-c/Error.h"
 #include "llvm-c/Transforms/PassBuilder.h"
 #include <caml/memory.h>
 
@@ -27,7 +27,18 @@ value llvm_run_passes(value M, value Passes, value TM, value Options) {
   LLVMErrorRef Err =
       LLVMRunPasses(Module_val(M), String_val(Passes), TargetMachine_val(TM),
                     PassBuilderOptions_val(Options));
-  return error_to_result(Err);
+  if (Err == LLVMErrorSuccess) {
+    value result = caml_alloc(1, 0);
+    Store_field(result, 0, Val_unit);
+    return result;
+  } else {
+    char *str = LLVMGetErrorMessage(Err);
+    value v = caml_copy_string(str);
+    LLVMDisposeErrorMessage(str);
+    value result = caml_alloc(1, 1);
+    Store_field(result, 0, v);
+    return result;
+  }
 }
 
 value llvm_create_passbuilder_options(value Unit) {

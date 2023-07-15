@@ -206,7 +206,6 @@ if(TARGET ocaml_llvm)
           ocaml_llvm_analysis
           ocaml_llvm_bitreader
           ocaml_llvm_bitwriter
-          ocaml_llvm_error
           ocaml_llvm_executionengine
           ocaml_llvm_irreader
           ocaml_llvm_linker

@@ -29,14 +29,6 @@ package "bitwriter" (
     archive(native) = "llvm_bitwriter.cmxa"
 )
 
-package "error" (
-    requires = "llvm"
-    version = "@PACKAGE_VERSION@"
-    description = "Error handling for LLVM"
-    archive(byte) = "llvm_error.cma"
-    archive(native) = "llvm_error.cmxa"
-)
-
 package "executionengine" (
     requires = "llvm,llvm.target,ctypes"
     version = "@PACKAGE_VERSION@"
@@ -70,7 +62,7 @@ package "transform_utils" (
 )
 
 package "passbuilder" (
-    requires = "llvm,llvm.error,llvm.target"
+    requires = "llvm,llvm.target"
     version = "@PACKAGE_VERSION@"
     description = "Pass Manager Builder for LLVM"
     archive(byte) = "llvm_passbuilder.cma"

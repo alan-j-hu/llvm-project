@@ -17,7 +17,7 @@ val run_passes
   -> string
   -> Llvm_target.TargetMachine.t
   -> llpassbuilder_options
-  -> (unit, Llvm_error.llerror) result
+  -> (unit, string) result
 
 (** Creates a new set of options for a PassBuilder. *)
 val create_passbuilder_options : unit -> llpassbuilder_options
