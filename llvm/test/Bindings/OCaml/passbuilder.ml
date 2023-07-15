@@ -25,8 +25,20 @@ let options = Llvm_passbuilder.create_passbuilder_options ()
 
 (*===-- PassBuilder -------------------------------------------------------===*)
 let () =
-  Llvm_passbuilder.set_verify_each options true;
-  Llvm_passbuilder.set_debug_logging options true;
+  Llvm_passbuilder.passbuilder_options_set_verify_each options true;
+  Llvm_passbuilder.passbuilder_options_set_debug_logging options true;
+  Llvm_passbuilder.passbuilder_options_set_loop_interleaving options true;
+  Llvm_passbuilder.passbuilder_options_set_loop_vectorization options true;
+  Llvm_passbuilder.passbuilder_options_set_slp_vectorization options true;
+  Llvm_passbuilder.passbuilder_options_set_loop_unrolling options true;
+  Llvm_passbuilder.passbuilder_options_set_forget_all_scev_in_loop_unroll
+    options true;
+  Llvm_passbuilder.passbuilder_options_set_licm_mssa_opt_cap options 2;
+  Llvm_passbuilder.passbuilder_options_set_licm_mssa_no_acc_for_promotion_cap
+    options 2;
+  Llvm_passbuilder.passbuilder_options_set_call_graph_profile options true;
+  Llvm_passbuilder.passbuilder_options_set_merge_functions options true;
+  Llvm_passbuilder.passbuilder_options_set_inliner_threshold options 2;
   match Llvm_passbuilder.run_passes m "no-op-module" machine options with
   | Error _ -> assert false
   | Ok () -> ()
