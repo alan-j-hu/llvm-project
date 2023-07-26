@@ -382,6 +382,8 @@ external set_diagnostic_handler
 external create_context : unit -> llcontext = "llvm_create_context"
 external dispose_context : llcontext -> unit = "llvm_dispose_context"
 external global_context : unit -> llcontext = "llvm_global_context"
+external set_opaque_pointers : llcontext -> bool -> unit =
+  "llvm_set_opaque_pointers"
 external mdkind_id : llcontext -> string -> llmdkind = "llvm_mdkind_id"
 
 (*===-- Attributes --------------------------------------------------------===*)

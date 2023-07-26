@@ -241,6 +241,11 @@ value llvm_dispose_context(value C) {
 /* unit -> llcontext */
 value llvm_global_context(value Unit) { return to_val(LLVMGetGlobalContext()); }
 
+value llvm_set_opaque_pointers(value C, value B) {
+  LLVMContextSetOpaquePointers(Context_val(C), Bool_val(B));
+  return Val_unit;
+}
+
 /* llcontext -> string -> int */
 value llvm_mdkind_id(value C, value Name) {
   unsigned MDKindID = LLVMGetMDKindIDInContext(Context_val(C), String_val(Name),
