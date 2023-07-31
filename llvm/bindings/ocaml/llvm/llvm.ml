@@ -508,8 +508,11 @@ external is_literal : lltype -> bool = "llvm_is_literal"
 external subtypes : lltype -> lltype array = "llvm_subtypes"
 external array_type : lltype -> int -> lltype = "llvm_array_type"
 external pointer_type : lltype -> lltype = "llvm_pointer_type"
+external pointer_type2 : llcontext -> lltype = "llvm_pointer_type2"
 external qualified_pointer_type : lltype -> int -> lltype
                                 = "llvm_qualified_pointer_type"
+external qualified_pointer_type2 : llcontext -> int -> lltype
+                                 = "llvm_qualified_pointer_type2"
 external vector_type : lltype -> int -> lltype = "llvm_vector_type"
 
 external element_type : lltype -> lltype = "llvm_get_element_type"

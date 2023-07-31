@@ -641,16 +641,29 @@ value llvm_array_type(value ElementTy, value Count) {
   return to_val(LLVMArrayType(Type_val(ElementTy), Int_val(Count)));
 }
 
-/* llcontext -> lltype */
+/* lltype -> lltype */
 value llvm_pointer_type(value ElementTy) {
   LLVMTypeRef Type = LLVMPointerType(Type_val(ElementTy), 0);
   return to_val(Type);
 }
 
-/* llcontext -> int -> lltype */
+/* llcontext -> lltype */
+value llvm_pointer_type2(value C) {
+  LLVMTypeRef Type = LLVMPointerTypeInContext(Context_val(C), 0);
+  return to_val(Type);
+}
+
+/* lltype -> int -> lltype */
 value llvm_qualified_pointer_type(value ElementTy, value AddressSpace) {
   LLVMTypeRef Type =
       LLVMPointerType(Type_val(ElementTy), Int_val(AddressSpace));
+  return to_val(Type);
+}
+
+/* llcontext -> int -> lltype */
+value llvm_qualified_pointer_type2(value C, value AddressSpace) {
+  LLVMTypeRef Type =
+      LLVMPointerTypeInContext(Context_val(C), Int_val(AddressSpace));
   return to_val(Type);
 }
 

@@ -456,9 +456,9 @@ val dispose_context : llcontext -> unit
 (** See the function [LLVMGetGlobalContext]. *)
 val global_context : unit -> llcontext
 
-(** Set opaque pointers mode. This is on by default. Opaque pointer mode
-    should be off to use the deprecated functions associated with the typed
-    to opaque pointer transition. *)
+(** Set opaque pointers mode. This is on by default. Opaque pointer
+    mode should be off to use the deprecated functions associated with typed
+    pointers. *)
 val set_opaque_pointers : llcontext -> bool -> unit
 
 (** [mdkind_id context name] returns the MDKind ID that corresponds to the
@@ -725,11 +725,27 @@ val array_type : lltype -> int -> lltype
     [ty] in the default address space (0).
     See the method [llvm::PointerType::getUnqual]. *)
 val pointer_type : lltype -> lltype
+[@@ocaml.deprecated
+  "pointer_type is deprecated in LLVM 15, use pointer_type2 that constructs
+   an opaque pointer. In LLVM 16 pointer_type is an alias for pointer_type2."]
 
-(** [qualified_pointer_type ty as] returns the pointer type referencing objects
-    of type [ty] in address space [as].
+(** [pointer_type2 c] returns the opaque pointer type in the default address
+    space (0) in context [c]. See the method [llvm::PointerType::getUnqual]. *)
+val pointer_type2 : llcontext -> lltype
+
+(** [qualified_pointer_type ty a] returns the pointer type referencing objects
+    of type [ty] in address space [a].
     See the method [llvm::PointerType::get]. *)
 val qualified_pointer_type : lltype -> int -> lltype
+[@@ocaml.deprecated
+  "qualified_pointer_type is deprecated in LLVM 15, use qualified_pointer_type2
+   that constructs an opaque pointer. In LLVM 16 qualified_pointer_type is an
+   alias for qualified_pointer_type2."]
+
+(** [qualified_pointer_type2 c a] returns the opaque pointer type in address
+    space [a] in context [c].
+    See the method [llvm::PointerType::get]. *)
+val qualified_pointer_type2 : llcontext -> int -> lltype
 
 (** [vector_type ty n] returns the array type containing [n] elements of the
     primitive type [ty]. See the method [llvm::ArrayType::get]. *)
