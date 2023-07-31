@@ -1310,6 +1310,16 @@ value llvm_const_in_bounds_gep(value ConstantVal, value Indices) {
   return to_val(Value);
 }
 
+/* llvalue -> llvalue array -> llvalue */
+value llvm_const_in_bounds_gep2(value Ty, value ConstantVal, value Indices) {
+  mlsize_t Length = Wosize_val(Indices);
+  LLVMValueRef *Temp = from_val_array(Indices);
+  LLVMValueRef Value =
+      LLVMConstInBoundsGEP2(Type_val(Ty), Value_val(ConstantVal), Temp, Length);
+  free(Temp);
+  return to_val(Value);
+}
+
 /* llvalue -> lltype -> llvalue */
 value llvm_const_trunc(value CV, value T) {
   LLVMValueRef Value = LLVMConstTrunc(Value_val(CV), Type_val(T));

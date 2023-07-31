@@ -669,6 +669,8 @@ external const_gep2 : lltype -> llvalue -> llvalue array -> llvalue
                     = "llvm_const_gep2"
 external const_in_bounds_gep : llvalue -> llvalue array -> llvalue
                              = "llvm_const_in_bounds_gep"
+external const_in_bounds_gep2 : lltype -> llvalue -> llvalue array -> llvalue
+                              = "llvm_const_in_bounds_gep"
 external const_trunc : llvalue -> lltype -> llvalue = "llvm_const_trunc"
 external const_sext : llvalue -> lltype -> llvalue = "llvm_const_sext"
 external const_zext : llvalue -> lltype -> llvalue = "llvm_const_zext"
