@@ -2590,10 +2590,10 @@ value llvm_build_atomicrmw_bytecode(value *argv, int argn) {
 
 /* llvalue -> llvalue array -> string -> llbuilder -> llvalue */
 value llvm_build_gep(value Pointer, value Indices, value Name, value B) {
+  mlsize_t Length = Wosize_val(Indices);
   LLVMValueRef *Temp = from_val_array(Indices);
-  LLVMValueRef Value = LLVMBuildGEP(Builder_val(B), Value_val(Pointer),
-                                    (LLVMValueRef *)Op_val(Indices),
-                                    Wosize_val(Indices), String_val(Name));
+  LLVMValueRef Value = LLVMBuildGEP(Builder_val(B), Value_val(Pointer), Temp,
+                                    Length, String_val(Name));
   free(Temp);
   return to_val(Value);
 }
