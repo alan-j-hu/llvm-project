@@ -14,7 +14,7 @@ open Llvm
 open Llvm_ipo
 open Llvm_target
 
-let context = global_context ()
+let context = global_context ~opaque_pointers:true
 let void_type = Llvm.void_type context
 let i8_type = Llvm.i8_type context
 

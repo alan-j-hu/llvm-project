@@ -228,8 +228,12 @@ value llvm_set_diagnostic_handler(value C, value Handler) {
 
 /*===-- Contexts ----------------------------------------------------------===*/
 
-/* unit -> llcontext */
-value llvm_create_context(value Unit) { return to_val(LLVMContextCreate()); }
+/* opaque_pointers:bool -> llcontext */
+value llvm_create_context(value B) {
+  LLVMContextRef C = LLVMContextCreate();
+  LLVMContextSetOpaquePointers(C, Bool_val(B));
+  return to_val(C);
+}
 
 /* llcontext -> unit */
 value llvm_dispose_context(value C) {
@@ -238,12 +242,11 @@ value llvm_dispose_context(value C) {
   return Val_unit;
 }
 
-/* unit -> llcontext */
-value llvm_global_context(value Unit) { return to_val(LLVMGetGlobalContext()); }
-
-value llvm_set_opaque_pointers(value C, value B) {
-  LLVMContextSetOpaquePointers(Context_val(C), Bool_val(B));
-  return Val_unit;
+/* opaque_pointers:bool -> llcontext */
+value llvm_global_context(value B) {
+  LLVMContextRef C = LLVMGetGlobalContext();
+  LLVMContextSetOpaquePointers(C, Bool_val(B));
+  return to_val(C);
 }
 
 /* llcontext -> string -> int */

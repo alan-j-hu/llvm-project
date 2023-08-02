@@ -13,7 +13,7 @@
 open Llvm
 open Llvm_irreader
 
-let context = global_context ()
+let context = global_context ~opaque_pointers:true
 
 (* Tiny unit test framework - really just to help find which line is busted *)
 let print_checkpoints = false

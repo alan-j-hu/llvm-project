@@ -6,7 +6,7 @@
  * XFAIL: vg_leak
  *)
 
-let context = Llvm.global_context ()
+let context = Llvm.global_context ~opaque_pointers:true
 
 let diagnostic_handler _ = ()
 

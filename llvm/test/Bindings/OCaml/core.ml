@@ -18,7 +18,7 @@ open Llvm
 open Llvm_bitwriter
 
 open Testsuite
-let context = global_context ()
+let context = global_context ~opaque_pointers:true
 let i1_type = Llvm.i1_type context
 let i8_type = Llvm.i8_type context
 let i16_type = Llvm.i16_type context

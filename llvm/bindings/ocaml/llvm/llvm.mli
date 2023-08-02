@@ -447,19 +447,15 @@ val set_diagnostic_handler : llcontext -> (Diagnostic.t -> unit) option -> unit
 
 (** [create_context ()] creates a context for storing the "global" state in
     LLVM. See the constructor [llvm::LLVMContext]. *)
-val create_context : unit -> llcontext
+val create_context : opaque_pointers:bool -> llcontext
 
 (** [destroy_context ()] destroys a context. See the destructor
     [llvm::LLVMContext::~LLVMContext]. *)
 val dispose_context : llcontext -> unit
 
-(** See the function [LLVMGetGlobalContext]. *)
-val global_context : unit -> llcontext
-
-(** Set opaque pointers mode. This is on by default. Opaque pointer
-    mode should be off to use the deprecated functions associated with typed
-    pointers. *)
-val set_opaque_pointers : llcontext -> bool -> unit
+(** See the function [LLVMGetGlobalContext]. Once opaque pointers mode has
+    been set or unset, it cannot be changed. *)
+val global_context : opaque_pointers:bool -> llcontext
 
 (** [mdkind_id context name] returns the MDKind ID that corresponds to the
     name [name] in the context [context].  See the function

@@ -10,7 +10,7 @@
 (* Note that this takes a moment to link, so it's best to keep the number of
    individual tests low. *)
 
-let context = Llvm.global_context ()
+let context = Llvm.global_context ~opaque_pointers:true
 
 let test x = if not x then exit 1 else ()
 

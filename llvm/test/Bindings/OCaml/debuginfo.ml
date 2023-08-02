@@ -8,7 +8,7 @@
 
 open Testsuite
 
-let context = Llvm.global_context ()
+let context = Llvm.global_context ~opaque_pointers:true
 
 let filename = "di_test_file"
 

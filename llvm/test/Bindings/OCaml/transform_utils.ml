@@ -9,7 +9,7 @@
 open Llvm
 open Llvm_transform_utils
 
-let context = global_context ()
+let context = global_context ~opaque_pointers:true
 
 let test_clone_module () =
   let m  = create_module context "mod" in

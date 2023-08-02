@@ -13,7 +13,7 @@
 open Llvm
 open Llvm_linker
 
-let context = global_context ()
+let context = global_context ~opaque_pointers:true
 let void_type = Llvm.void_type context
 
 let diagnostic_handler _ = ()

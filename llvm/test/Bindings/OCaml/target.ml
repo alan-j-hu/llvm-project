@@ -14,7 +14,7 @@ open Llvm_target
 
 let () = Llvm_all_backends.initialize ()
 
-let context = global_context ()
+let context = global_context ~opaque_pointers:true
 let i32_type = Llvm.i32_type context
 let i64_type = Llvm.i64_type context
 
