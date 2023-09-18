@@ -15,16 +15,17 @@
 |*                                                                            *|
 \*===----------------------------------------------------------------------===*/
 
-#include <assert.h>
-#include <stdlib.h>
-#include <string.h>
+#include "llvm_ocaml.h"
+#include "caml/callback.h"
+#include "caml/fail.h"
+#include "caml/memory.h"
 #include "llvm-c/Core.h"
 #include "llvm-c/Support.h"
 #include "llvm/Config/llvm-config.h"
-#include "caml/memory.h"
-#include "caml/fail.h"
-#include "caml/callback.h"
-#include "llvm_ocaml.h"
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #if OCAML_VERSION < 41200
 value caml_alloc_some(value v) {
@@ -1939,6 +1940,7 @@ value llvm_entry_block(value Val) {
 /* llvalue -> llbasicblock */
 value llvm_instr_parent(value Inst) {
   LLVMBasicBlockRef BB = LLVMGetInstructionParent(Value_val(Inst));
+  printf("%p", BB);
   return to_val(BB);
 }
 
