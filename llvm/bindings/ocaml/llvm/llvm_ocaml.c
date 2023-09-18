@@ -1941,7 +1941,7 @@ value llvm_entry_block(value Val) {
 value llvm_instr_parent(value Inst) {
   LLVMBasicBlockRef BB = LLVMGetInstructionParent(Value_val(Inst));
   assert (0);
-  printf("%p\n", BB);
+  fprintf(stderr, "%p\n", BB);
   return to_val(BB);
 }
 
