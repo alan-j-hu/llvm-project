@@ -1,0 +1,10 @@
+(library
+ (name llvm_analysis)
+ (public_name llvm.analysis)
+ (libraries llvm)
+ (foreign_stubs
+  (language c)
+  (names analysis_ocaml)
+  (extra_deps ../llvm/llvm_ocaml.h)
+  (flags (:include ../c_flags.sexp)))
+  (c_library_flags (:include c_library_flags.sexp)))
